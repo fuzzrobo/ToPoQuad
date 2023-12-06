@@ -1,0 +1,30 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/robotis/slam_rating_ws/devel/include/**",
+        "/home/robotis/catkin_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/robotis/catkin_ws/src/ToPoQuad/dynamixel_handler/include/**",
+        "/home/robotis/slam_rating_ws/src/DynamixelSDK/ros/dynamixel_sdk/include/**",
+        "/home/robotis/slam_rating_ws/src/realsense-ros_jp_custom/realsense2_camera/include/**",
+        "/home/robotis/catkin_ws/src/realsense_gazebo_plugin/include/**",
+        "/home/robotis/slam_rating_ws/src/ros_fuzzy_controller/include/**",
+        "/home/robotis/slam_rating_ws/src/turtlebot3_simulations_jp_custom/turtlebot3_fake/include/**",
+        "/home/robotis/slam_rating_ws/src/turtlebot3_simulations_jp_custom/turtlebot3_gazebo/include/**",
+        "/home/robotis/catkin_ws/src/turtlebot3_jp_custom/turtlebot3_slam/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
