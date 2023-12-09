@@ -15,17 +15,22 @@ bool        varbose;
 struct Dynamixel{
     int32_t goal_position;
     int32_t present_position;
+    int32_t goal_current;
+    int32_t present_current;
 };
 
 DynamixelComunicator dyn_comm;
 std::vector<uint8_t> id_list;
 std::vector<Dynamixel> dynamixel_chain;
-bool is_updated = false;
+bool is_updated_p = false;
+bool is_updated_c = false;
 
 // int64_t deg2pulse(double deg) { return deg * 4096.0 / 360.0 + 2048; }
 // double  pulse2deg(int64_t pulse) { return (pulse - 2048 ) * 360.0 / 4096.0; }
 int64_t rad2pulse(double rad) { return rad * 4096.0 / (2.0 * M_PI) + 2048; }
 double  pulse2rad(int64_t pulse) { return (pulse - 2048 ) * 2.0 * M_PI / 4096.0; }
+int64_t mA2pulse(double mA) { return mA / 1.0; }
+double  pulse2mA(int64_t pulse) { return pulse * 1.0; }
 
 void FindServo(int id_max) {   
     id_list.clear(); // push_backされれるため， id_listの中身を空にする
@@ -50,7 +55,7 @@ void InitDynamixelChain(int id_max){
     // サーボの実体としてのDynamixel Chainの初期化, 今回は一旦すべて位置制御モードにしてトルクON    
     for (auto id : id_list) {
         dyn_comm.Write(id, torque_enable_x, TORQUE_DISABLE);
-        dyn_comm.Write(id, operating_mode_x, OPERATING_MODE_POSITION);
+        dyn_comm.Write(id, operating_mode_x, OPERATING_MODE_CURRENT_BASE_POSITION);  
         dyn_comm.Write(id, profile_acceleration_x, 500); // 0~32767 数字は適当
         dyn_comm.Write(id, profile_velocity_x, 100); // 0~32767 数字は適当
         int present_pos = dyn_comm.Read(id, present_position_x);
@@ -65,14 +70,21 @@ void InitDynamixelChain(int id_max){
     for (auto id : id_list) {
         dynamixel_chain[id].present_position = dyn_comm.Read(id, present_position_x); // エラー時は0
         dynamixel_chain[id].goal_position    = dyn_comm.Read(id, goal_position_x);    // エラー時は0
+        dynamixel_chain[id].present_current = dyn_comm.Read(id, present_current_x); // エラー時は0
+        dynamixel_chain[id].goal_current    = dyn_comm.Read(id, goal_current_x);    // エラー時は0
     }
 }
 
 void SyncWritePosition(){
-	 //id_list.size()のベクトルを作成
     std::vector<int64_t> data_int_list(id_list.size());
     for (size_t i = 0; i < id_list.size(); i++) data_int_list[i] = dynamixel_chain[id_list[i]].goal_position;
     dyn_comm.SyncWrite(id_list, goal_position_x, data_int_list);
+}
+
+void SyncWriteCurrent(){
+    std::vector<int64_t> data_int_list(id_list.size());
+    for (size_t i = 0; i < id_list.size(); i++) data_int_list[i] = dynamixel_chain[id_list[i]].goal_current;
+    dyn_comm.SyncWrite(id_list, goal_current_x, data_int_list);
 }
 
 bool SyncReadPosition(){
@@ -97,12 +109,36 @@ bool SyncReadPosition(){
     return num_success>0 ? true : false; // 1つでも成功したら成功とする.あえて冗長に書いている.
 }
 
+bool SyncReadCurrent(){
+    std::vector<int64_t> data_int_list(id_list.size());
+    std::vector<uint8_t> read_id_list(id_list.size());
+    for (size_t i = 0; i < id_list.size(); i++) data_int_list[i] = dynamixel_chain[id_list[i]].present_current; // read失敗時に初期化されないままだと危険なので．
+    for (size_t i = 0; i < id_list.size(); i++) read_id_list[i]  = 255; // あり得ない値(idは0~252)に設定して，read失敗時に検出できるようにする
+
+    int num_success = dyn_comm.SyncRead_fast(id_list, present_current_x, data_int_list, read_id_list);
+    // エラー処理
+    if (num_success != id_list.size()){
+        ROS_WARN("SyncReadcurrent: %d servo(s) failed to read", (int)(id_list.size() - num_success));
+        for (size_t i = 0; i < id_list.size(); i++){
+            if (std::find(id_list.begin(), id_list.end(), read_id_list[i]) == id_list.end())
+                ROS_WARN("  * servo id [%d] failed to read", id_list[i]);
+        }
+    }
+    // 読み込んだデータをdynamixel_chainに反映
+    for (size_t i = 0; i < id_list.size(); i++) // data_int_listの初期値がpresent_currentなので，read失敗時はそのままになる．
+        dynamixel_chain[id_list[i]].present_current = data_int_list[i]; 
+
+    return num_success>0 ? true : false; // 1つでも成功したら成功とする.あえて冗長に書いている.
+}
+
 void ShowDynamixelChain(){
     // dynamixel_chainのすべての内容を表示
     for (auto id : id_list) {
         ROS_INFO("== Servo id [%d] ==", id);
         ROS_INFO("  present_position [%d] pulse", dynamixel_chain[id].present_position);
         ROS_INFO("  goal_position    [%d] pulse", dynamixel_chain[id].goal_position);
+        ROS_INFO("  present_current  [%d] mA", dynamixel_chain[id].present_current);
+        ROS_INFO("  goal_current     [%d] mA", dynamixel_chain[id].goal_current);
     }
 }
 
@@ -122,12 +158,20 @@ void CallBackOfDynamixelCommand(const dynamixel_handler::DynamixelCmd& msg) {
         if (msg.ids.size() == 0) for (auto id : id_list) RebootDynamixel(id);
     }
     if (msg.command == "write") {
-        for (int i = 0; i < msg.ids.size(); i++) {
-            int id = msg.ids[i];
-            assert(0 <= id && id <= dynamixel_chain.size());
-            dynamixel_chain[id].goal_position = rad2pulse(msg.goal_angles[i]);
+        if( msg.goal_angles.size() == msg.ids.size()) {
+            is_updated_p = true;
+            for (int i = 0; i < msg.ids.size(); i++) {
+                int id = msg.ids[i];
+                dynamixel_chain[id].goal_position = rad2pulse(msg.goal_angles[i]);
+            } 
         }
-        is_updated = true;
+        if( msg.goal_currents.size() == msg.ids.size()) {
+            is_updated_c = true;
+            for (int i = 0; i < msg.ids.size(); i++) {
+                int id = msg.ids[i];
+                dynamixel_chain[id].goal_current  =  mA2pulse(msg.goal_currents[i]);
+            } 
+        }
     }
 }
 
@@ -157,16 +201,21 @@ int main(int argc, char **argv) {
     ros::Rate rate(loop_rate);
     while(ros::ok()) {
         // Dynamixelから現在角をRead & topicをPublish
-        bool is_success = SyncReadPosition();
-        if ( is_success ) {
+        bool is_success_p = SyncReadPosition();
+        bool is_success_c = SyncReadCurrent();
+        if ( is_success_p && is_success_c ) {
             dynamixel_handler::DynamixelState msg;
             msg.ids.resize(id_list.size());
             msg.present_angles.resize(id_list.size());
             msg.goal_angles.resize(id_list.size());
+            msg.present_currents.resize(id_list.size());
+            msg.goal_currents.resize(id_list.size());
             for (size_t i = 0; i < id_list.size(); i++) {
                 msg.ids[i] = id_list[i];
                 msg.present_angles[i] = pulse2rad(dynamixel_chain[id_list[i]].present_position);
                 msg.goal_angles[i]    = pulse2rad(dynamixel_chain[id_list[i]].goal_position);
+                msg.present_currents[i] = pulse2mA(dynamixel_chain[id_list[i]].present_current);
+                msg.goal_currents[i]    = pulse2mA(dynamixel_chain[id_list[i]].goal_current);
             }
             pub_dyn_state.publish(msg);
         }
@@ -177,9 +226,13 @@ int main(int argc, char **argv) {
         // topicをSubscribe & Dynamixelへ目標角をWrite
         ros::spinOnce();
         rate.sleep();
-        if( is_updated ) {
+        if( is_updated_p ) {
             SyncWritePosition();
-            is_updated = false;
+            is_updated_p = false;
+        } 
+        if( is_updated_c ) {
+            SyncWriteCurrent();
+            is_updated_c = false;
         } 
     }
 }
