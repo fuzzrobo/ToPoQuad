@@ -47,12 +47,21 @@ void FindServo(int id_max) {
     }
 }
 
+void RebootDynamixel(int id){
+    auto prev_state= dyn_comm.Read(id, torque_enable_x);
+    if( prev_state == TORQUE_ENABLE) dyn_comm.Write(id, torque_enable_x, TORQUE_DISABLE);
+    dyn_comm.Reboot(id);
+    ros::Duration(0.5).sleep();
+    dyn_comm.Write(id, torque_enable_x, prev_state);
+    ROS_WARN("Servo id [%d] is rebooted", id);
+}
+
 void InitDynamixelChain(int id_max){
     // id_listの作成
     FindServo(id_max);
     assert(id_list.size() != 0);
 
-    // サーボの実体としてのDynamixel Chainの初期化, 今回は一旦すべて位置制御モードにしてトルクON    
+    // サーボの実体としてのDynamixel Chainの初期化, 今回は一旦すべて電流制御付き位置制御モードにしてトルクON    
     for (auto id : id_list) {
         dyn_comm.Write(id, torque_enable_x, TORQUE_DISABLE);
         dyn_comm.Write(id, operating_mode_x, OPERATING_MODE_CURRENT_BASE_POSITION);  
@@ -60,6 +69,8 @@ void InitDynamixelChain(int id_max){
         dyn_comm.Write(id, profile_velocity_x, 100); // 0~32767 数字は適当
         int present_pos = dyn_comm.Read(id, present_position_x);
         dyn_comm.Write(id, goal_position_x, present_pos);
+        bool is_hardware_error = dyn_comm.Read(id, hardware_error_status_x); // ここでは雑に判定している．本来の返り値はuint8_tで各ビットに意味がある. 
+        if (is_hardware_error) RebootDynamixel(id);
         dyn_comm.Write(id, torque_enable_x, TORQUE_ENABLE);
         if(dyn_comm.Read(id, torque_enable_x) == TORQUE_DISABLE) ROS_WARN("Servo id [%d] failed to enable torque", id);
     }
@@ -140,14 +151,6 @@ void ShowDynamixelChain(){
         ROS_INFO("  present_current  [%d] mA", dynamixel_chain[id].present_current);
         ROS_INFO("  goal_current     [%d] mA", dynamixel_chain[id].goal_current);
     }
-}
-
-void RebootDynamixel(int id){
-    dyn_comm.Write(id, torque_enable_x, TORQUE_DISABLE);
-    dyn_comm.Reboot(id);
-    ros::Duration(0.5).sleep();
-    dyn_comm.Write(id, torque_enable_x, TORQUE_ENABLE);
-    if(dyn_comm.Read(id, torque_enable_x) == TORQUE_DISABLE) ROS_WARN("Servo id [%d] failed to enable torque", id);
 }
 
 void CallBackOfDynamixelCommand(const dynamixel_handler::DynamixelCmd& msg) {
