@@ -1,5 +1,6 @@
 #include <string>
 #include <Eigen/Core>
+using Eigen::Vector3d;
 
 #include <ros/ros.h>
 // #include "leg_node.hpp"
@@ -7,8 +8,8 @@
 #include <dynamixel_handler/DynamixelState.h>
 #include <dynamixel_handler/DynamixelCmd.h>
 #include <topoquad_master/QuadRobotState.h>
-#include <topoquad_master/QuadRobotCmd.h>
-#include <topoquad_master/QuadRobotLeg.h>
+#include <topoquad_master/QuadRobotCmdAngle.h>
+#include <topoquad_master/QuadRobotCmdLegPoint.h>
 
 #include <geometry_msgs/Point.h>
 
@@ -62,13 +63,6 @@ Leg leg_FL;
 Leg leg_BR;
 Leg leg_BL;
 
-void CallBackOfLegCmd(const topoquad_master::QuadRobotCmd::ConstPtr& msg) {
-    if(msg->angles_FR.size() > 1) leg_FR.SetAngles(msg->angles_FR);
-    if(msg->angles_FL.size() > 1) leg_FL.SetAngles(msg->angles_FL);
-    if(msg->angles_BR.size() > 1) leg_BR.SetAngles(msg->angles_BR);
-    if(msg->angles_BL.size() > 1) leg_BL.SetAngles(msg->angles_BL);
-}
-
 #define ANGLE_FR M_PI_4 + M_PI_2 * 0
 #define ANGLE_FL M_PI_4 + M_PI_2 * 1
 #define ANGLE_BR M_PI_4 + M_PI_2 * 2
@@ -110,13 +104,19 @@ std::vector<double> leg_ik(geometry_msgs::Point p, const double *leg){
     return angles;
 }
 
-void CallBackOfLegPoint(const topoquad_master::QuadRobotLeg::ConstPtr& msg){
-    topoquad_master::QuadRobotCmd cmd;
-    cmd.angles_FR = leg_ik(msg->leg_FR, FR);
-    cmd.angles_FL = leg_ik(msg->leg_FL, FL);
-    cmd.angles_BR = leg_ik(msg->leg_BR, BR);
-    cmd.angles_BL = leg_ik(msg->leg_BL, BL);
-    pub_leg_cmd.publish(cmd);
+
+void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdAngle::ConstPtr& msg) {
+    if(msg->angles_FR.size() > 1) leg_FR.SetAngles(msg->angles_FR);
+    if(msg->angles_FL.size() > 1) leg_FL.SetAngles(msg->angles_FL);
+    if(msg->angles_BR.size() > 1) leg_BR.SetAngles(msg->angles_BR);
+    if(msg->angles_BL.size() > 1) leg_BL.SetAngles(msg->angles_BL);
+}
+
+void CallBackOfLegPoint(const topoquad_master::QuadRobotCmdLegPoint::ConstPtr& msg){
+    leg_FR.SetAngles(leg_ik(msg->leg_FR, FR));
+    leg_FL.SetAngles(leg_ik(msg->leg_FL, FL));
+    leg_BR.SetAngles(leg_ik(msg->leg_BR, BR));
+    leg_BL.SetAngles(leg_ik(msg->leg_BL, BL));
 }
 
 int main(int argc, char **argv) {
@@ -124,30 +124,28 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
     ros::NodeHandle nh_p("~");
     
-    leg_BR.initialize( Joint{  4, -1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  3, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  2, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );
-    leg_FR.initialize( Joint{ 14, -1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 13, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 12, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  ); 
-    leg_FL.initialize( Joint{ 24, +1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 23, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 22, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );
-    leg_BL.initialize( Joint{ 34, +1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 33, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 32, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );  
+    leg_BR.initialize( Joint{  4, -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{  3, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{  2, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
+    leg_FR.initialize( Joint{ 14, -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 13, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 12, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  ); 
+    leg_FL.initialize( Joint{ 24, +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 23, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 22, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
+    leg_BL.initialize( Joint{ 34, +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 33, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ 32, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );  
 
     FR[0] = LENGTH_BASE * cos(ANGLE_FR), FR[1] = LENGTH_BASE * sin(ANGLE_FR);
     FL[0] = LENGTH_BASE * cos(ANGLE_FL), FL[1] = LENGTH_BASE * sin(ANGLE_FL);
     BR[0] = LENGTH_BASE * cos(ANGLE_BR), BR[1] = LENGTH_BASE * sin(ANGLE_BR);
     BL[0] = LENGTH_BASE * cos(ANGLE_BL), BL[1] = LENGTH_BASE * sin(ANGLE_BL);         
 
-    ros::Subscriber sub_leg_cmd   = nh.subscribe("/legs/cmd", 10, CallBackOfLegCmd);
+    ros::Subscriber sub_leg_point = nh.subscribe("/legs/point", 10, CallBackOfLegPoint);
+    ros::Subscriber sub_leg_angle = nh.subscribe("/legs/angle", 10, CallBackOfLegAngle);
     ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCmd>("/dynamixel/cmd", 10);
     
-    ros::Subscriber sub_leg_point   = nh.subscribe("/legs/point", 10, CallBackOfLegPoint);
-    pub_leg_cmd   = nh.advertise<topoquad_master::QuadRobotCmd>("/legs/cmd", 10);
-
     ros::Duration(1).sleep();
 
     // ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe

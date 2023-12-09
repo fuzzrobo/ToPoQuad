@@ -53,8 +53,8 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 add_message_files(
   FILES
   QuadRobotState.msg
-  QuadRobotCmd.msg
-  QuadRobotLeg.msg
+  QuadRobotCmdAngle.msg
+  QuadRobotCmdLegPoint.msg
 )
 
 ## Generate services in the 'srv' folder
