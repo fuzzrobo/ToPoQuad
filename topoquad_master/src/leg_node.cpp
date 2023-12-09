@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_leg_angle = nh.subscribe("/legs/angle", 10, CallBackOfLegAngle);
     ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCmd>("/dynamixel/cmd", 10);
     
-    ros::Duration(1).sleep();
+    ros::Duration(2).sleep();
 
     // ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe
     // ros::Publisher  pub_leg_state   = nh.advertise<dynamixel_handler::DynamixelCmd>("/legs/state", 10); // サーボの角度を関節の状態に変換してpublish

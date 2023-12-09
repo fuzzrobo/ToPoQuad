@@ -1,6 +1,10 @@
 <launch>
 
-  <group ns="camera_realsense">
+  <include file="$(find dynamixel_handler)/launch/dynamixel_ubuntu.launch" />
+
+  <node pkg="topoquad_master" name="leg_node" type="leg_node"/>
+
+  <!-- <group ns="camera_realsense">
     <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
       <arg name="serial_no"         value=""/>
       <arg name="json_file_path"    value=""/>
@@ -19,6 +23,6 @@
       <arg name="enable_sync"       value="false"/>
       <arg name="tf_prefix"         value="camera_realsense"/>
     </include>
-    </group>
+    </group> -->
 	
 </launch>

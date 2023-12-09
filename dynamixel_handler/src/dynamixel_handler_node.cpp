@@ -36,9 +36,9 @@ void FindServo(int id_max) {
     id_list.clear(); // push_backされれるため， id_listの中身を空にする
     for (int id = 1; id <= id_max; id++) {
         bool is_found = false;
-        for (size_t i = 0; i < 5; i++) {
+        for (size_t i = 0; i < 3; i++) {
             if (dyn_comm.Ping(id)) is_found = true;
-            ros::Duration(0.02).sleep();
+            ros::Duration(0.01).sleep();
         }
         if (is_found) {
             id_list.push_back(id);
@@ -231,6 +231,7 @@ int main(int argc, char **argv) {
             is_updated_p = false;
         } 
         if( is_updated_c ) {
+            SyncWritePosition();
             SyncWriteCurrent();
             is_updated_c = false;
         } 

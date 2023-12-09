@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="dynamixel_handler" name="dynamixel_handler_node" type="dynamixel_handler_node" output="screen">
+      <param name="DEVICE_NAME" value="/dev/ttyUSB0"/>
+  </node>
+
+</launch>
