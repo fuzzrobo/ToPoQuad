@@ -587,7 +587,7 @@ uint8_t DynamixelComunicator::SyncRead( const vector<uint8_t>& servo_id_list, Dy
       if (port_handler_->isPacketTimeout()) {
         printf("Sync Read Error(time out): ID %d, available bytes %d / %d\n", servo_id_list[i_servo], port_handler_->getBytesAvailable(), 11+dp.size());
         error_last_read_ = true;
-        return 0;
+        return num_read;
       }
     }
 
