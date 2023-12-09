@@ -123,19 +123,25 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "leg_node");
     ros::NodeHandle nh;
     ros::NodeHandle nh_p("~");
-    
-    leg_BR.initialize( Joint{  4, -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  3, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  2, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
-    leg_FR.initialize( Joint{ 14, -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 13, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 12, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  ); 
-    leg_FL.initialize( Joint{ 24, +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 23, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 22, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
-    leg_BL.initialize( Joint{ 34, +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 33, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 32, +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );  
+
+    std::vector<int> ids_BR, ids_FR, ids_FL, ids_BL;
+    if (!nh_p.getParam("BR_leg_dynamixel_ID",   ids_BR)) ids_BR = { 4, 3, 2};
+    if (!nh_p.getParam("FR_leg_dynamixel_ID",   ids_FR)) ids_FR = {14,13,12};
+    if (!nh_p.getParam("FL_leg_dynamixel_ID",   ids_FL)) ids_FL = {24,23,22};
+    if (!nh_p.getParam("BL_leg_dynamixel_ID",   ids_BL)) ids_BL = {34,33,32};
+
+    leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_BR[1], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_BR[2], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
+    leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_FR[1], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_FR[2], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  ); 
+    leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_FL[1], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_FL[2], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );
+    leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 , Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_BL[1], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) },
+                       Joint{ ids_BL[2], +1.0, M_PI/4, Vector3d(0.0, 0.0, 0.0) }  );  
 
     FR[0] = LENGTH_BASE * cos(ANGLE_FR), FR[1] = LENGTH_BASE * sin(ANGLE_FR);
     FL[0] = LENGTH_BASE * cos(ANGLE_FL), FL[1] = LENGTH_BASE * sin(ANGLE_FL);

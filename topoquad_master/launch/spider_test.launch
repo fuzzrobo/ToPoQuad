@@ -2,7 +2,12 @@
 
   <include file="$(find dynamixel_handler)/launch/dynamixel_ubuntu.launch" />
 
-  <node pkg="topoquad_master" name="leg_node" type="leg_node"/>
+  <node pkg="topoquad_master" name="leg_node" type="leg_node" output="screen">
+    <rosparam param="BR_leg_dynamixel_ID"> [ 4,  3,  2]</rosparam>
+    <rosparam param="FR_leg_dynamixel_ID"> [14, 13, 12]</rosparam>
+    <rosparam param="FL_leg_dynamixel_ID"> [24, 23, 22]</rosparam>
+    <rosparam param="BL_leg_dynamixel_ID"> [34, 33, 32]</rosparam>
+  </node>
 
   <!-- <group ns="camera_realsense">
     <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
