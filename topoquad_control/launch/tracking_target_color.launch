@@ -9,5 +9,13 @@
         <remap from="/pantilt/state" to="/spider/state/neck/present" />
         <remap from="/pantilt/cmd" to="/spider/cmd/neck_angle" />
     </node>
+
+    <node name="detect_target_color_node" pkg="topoquad_control" type="detect_target_color.py" output="screen">
+        <rosparam param="hsv_mask1_lower"> [  0,  50,   0] </rosparam>
+        <rosparam param="hsv_mask1_upper"> [ 10, 255, 255] </rosparam>
+        <rosparam param="hsv_mask2_lower"> [160,  50,   0] </rosparam>
+        <rosparam param="hsv_mask2_upper"> [180, 255, 255] </rosparam>
+    </node>
+
     <node name="walking" pkg="topoquad_control" type="leg_sample_control.py" output="screen"/>
 </launch>
