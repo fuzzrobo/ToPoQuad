@@ -9,4 +9,5 @@
         <remap from="/pantilt/state" to="/spider/state/neck/present" />
         <remap from="/pantilt/cmd" to="/spider/cmd/neck_angle" />
     </node>
+    <node name="walking" pkg="topoquad_control" type="leg_sample_control.py" output="screen"/>
 </launch>
