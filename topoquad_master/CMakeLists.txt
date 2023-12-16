@@ -52,8 +52,8 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  QuadRobotState.msg
-  QuadRobotCmdAngle.msg
+  QuadRobotStateLeg.msg
+  QuadRobotCmdLegAngle.msg
   QuadRobotCmdLegPoint.msg
 )
 

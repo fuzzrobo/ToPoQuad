@@ -2,11 +2,19 @@
 
   <include file="$(find dynamixel_handler)/launch/dynamixel_ubuntu.launch" />
 
-  <node pkg="topoquad_master" name="leg_node" type="leg_node" output="screen">
-    <rosparam param="BR_leg_dynamixel_ID"> [ 4,  3,  2]</rosparam>
-    <rosparam param="FR_leg_dynamixel_ID"> [14, 13, 12]</rosparam>
-    <rosparam param="FL_leg_dynamixel_ID"> [24, 23, 22]</rosparam>
-    <rosparam param="BL_leg_dynamixel_ID"> [34, 33, 32]</rosparam>
+  <group ns="spider">
+    <node pkg="topoquad_master" name="leg_node" type="leg_node">
+    <!-- <node pkg="topoquad_master" name="leg_node" type="leg_node" output="screen"> -->
+        <rosparam param="BR_leg_dynamixel_ID"> [ 4,  3,  2]</rosparam> <!--[body]-Yaw-Pitch-Pirch -->
+        <rosparam param="FR_leg_dynamixel_ID"> [14, 13, 12]</rosparam> <!--[body]-Yaw-Pitch-Pirch -->
+        <rosparam param="FL_leg_dynamixel_ID"> [24, 23, 22]</rosparam> <!--[body]-Yaw-Pitch-Pirch -->
+        <rosparam param="BL_leg_dynamixel_ID"> [34, 33, 32]</rosparam> <!--[body]-Yaw-Pitch-Pirch -->
+        <remap from="/legs/angle" to="/spider/cmd/leg_angle" />
+        <remap from="/legs/point" to="/spider/cmd/leg_point" />
+        <remap from="/legs/state/present" to="/spider/state/leg/present" />
+        <remap from="/legs/state/goal" to="/spider/state/leg/goal" />
+    </node>
+
   </node>
 
   <!-- <group ns="camera_realsense">
@@ -29,5 +37,6 @@
       <arg name="tf_prefix"         value="camera_realsense"/>
     </include>
     </group> -->
+    </group>
 	
 </launch>
