@@ -1,0 +1,12 @@
+<launch>
+
+    <node name="tracking_node" pkg="topoquad_control" type="neck_tracking_target.py" output="screen">
+        <rosparam param="pan_joint_limit"> {min: -1.57, max: 1.57} </rosparam>
+        <rosparam param="tilt_joint_limit"> {min: -1.57, max: 1.57} </rosparam>
+        <param name="p_gain" value="0.075" />
+        <param name="d_gain" value="0.5" /> <!-- no need in almost situations -->
+        <param name="i_gain" value="0.0" /> <!-- no need in almost situations -->
+        <remap from="/pantilt/state" to="/spider/state/neck/present" />
+        <remap from="/pantilt/cmd" to="/spider/cmd/neck_angle" />
+    </node>
+</launch>
