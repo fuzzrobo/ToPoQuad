@@ -18,4 +18,7 @@
     </node>
 
     <node name="walking" pkg="topoquad_control" type="leg_sample_control.py" output="screen"/>
+
+    <include file="$(find topoquad_master)/launch/spider_test.launch" />
+
 </launch>
