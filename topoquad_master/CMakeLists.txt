@@ -53,6 +53,8 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 add_message_files(
   FILES
   QuadRobotStateLeg.msg
+  QuadRobotStateNeck.msg
+  QuadRobotCmdNeckAngle.msg
   QuadRobotCmdLegAngle.msg
   QuadRobotCmdLegPoint.msg
 )
@@ -128,6 +130,12 @@ add_executable(leg_node src/leg_node.cpp)
 add_dependencies(leg_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 target_link_libraries(leg_node ${catkin_LIBRARIES} Eigen3::Eigen )
+
+add_executable(neck_node src/neck_node.cpp)
+
+add_dependencies(neck_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(neck_node ${catkin_LIBRARIES} Eigen3::Eigen )
 
 #############
 ## Install ##
