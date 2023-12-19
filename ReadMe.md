@@ -3,11 +3,15 @@
 ## 現状実装されている機能
  - dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
  - dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
- - dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node
+ - dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
  - 脚への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
- - 首への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
+ - 足先の位置をdynamixelへの角度指令へ変換 [topoquad_master/leg_node]
+    - 足先位置はBody座標系から見たもの．
+    - 単純な3LinkのIKを解いている．
+ - 首への角度指令をdynamixelへの角度指令への変換 [topoquad_master/neck_node]
  - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
- - realsenseの画像から特定の色を検出して首のパンチルト機構でトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
+ - 首のパンチルト機構による物体のトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
+    - realsenseの画像から特定の色の位置を検出
 
 ## 起動方法
 
