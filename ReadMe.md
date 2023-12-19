@@ -1,17 +1,18 @@
 # ToPoQuad
 
 ## 現状実装されている機能
- - dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
- - dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
- - dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
- - 脚への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
- - 足先の位置をdynamixelへの角度指令へ変換 [topoquad_master/leg_node]
+ - Dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
+ - Dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
+ - Dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
+ - 脚への角度指令をDynamixelへの角度指令への変換 [topoquad_master/leg_node]
+ - 足先の位置をDynamixelへの角度指令へ変換 [topoquad_master/leg_node]
     - 足先位置はBody座標系から見たもの．
     - 単純な3LinkのIKを解いている．
- - 首への角度指令をdynamixelへの角度指令への変換 [topoquad_master/neck_node]
+ - 首への角度指令をDynamixelへの角度指令へ変換 [topoquad_master/neck_node]
  - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
  - 首のパンチルト機構による物体のトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
     - realsenseの画像から特定の色の位置を検出
+    - 画角の中心に物体が来るようにパンチルト角を制御
 
 ## 起動方法
 
@@ -30,7 +31,7 @@ $ roslaunch topoquad_control tracking_target_color_with_sample_walk.launch
    ┗ {topoquad_master}/launch/spider_test.launch
         ┣ leg_node
         ┣ neck_node
-        ┗ {find dynamixel_handler}/launch/dynamixel_ubuntu.launch
+        ┗ {dynamixel_handler}/launch/dynamixel_ubuntu.launch
              ┗ dynamixel_handler_node
 ```
 デフォルトだと"Dynamixelとの通信を司るノード"のusb deviceの値が`DEVICE=/dev/ttyUSB0`になっているので，適当に変更すること．
@@ -107,7 +108,8 @@ $ pose1
 
 
 ## トピックについて
-各pkgのReadMeを参照
+各pkgのReadMeを参照．
+（まだ書けてないので，直接launch or src読んでください，すいません．）
 
 ## dynamixel id map
 
