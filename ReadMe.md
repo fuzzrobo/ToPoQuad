@@ -1,54 +1,112 @@
 # ToPoQuad
 
-## メモ
-dynamixel_handlerは将来リポジトリごと独立させ，依存パッケージとしてのみ記述する（realsenseのSDKみたいに）
+## 現状実装されている機能
+ - dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
+ - dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
+ - dynamixelのエラーの検出と再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
+ - 脚への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
+ - 首への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
+ - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
+ - realsenseの画像から特定の色を検出して首のパンチルト機構でトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
 
 ## 起動方法
+
+### まとめてroslaunch
+
+```
+$ roslaunch topoquad_control tracking_target_color_with_sample_walk.launch
+```
+下記の構成でnodeをまとめて起動する．
+
+```
+{topoquad_control}/tracking_target_color_with_sample_walk.launch
+   ┣ leg_sample_control.py
+   ┣ neck_tracking_target.py
+   ┣ detect_target_color.py
+   ┗ {topoquad_master}/launch/spider_test.launch
+        ┣ leg_node
+        ┣ neck_node
+        ┗ {find dynamixel_handler}/launch/dynamixel_ubuntu.launch
+             ┗ dynamixel_handler_node
+```
+デフォルトだと"Dynamixelとの通信を司るノード"のusb deviceの値が`DEVICE=/dev/ttyUSB0`になっているので，適当に変更すること．
+`dynamixel_ubuntu.launch`を複製して，`DEVICE`をラズパイ用に変更した`dynamixel_raspi.launch`を作成するとよいかと思われる．
+
+### 個別にrosrun
+
+#### 1 roscore
 ```
 $ roscore
 ```
-言わずもがな
 
+#### 2 Dynamixelとの通信を司るノード
 ```
-$ rosrun dynamixel_handler dynamixel_handler_node 
+$ rosrun dynamixel_handler dynamixel_handler_node _DEVICE:=/dev/ttyUSB0 # Ubuntu
+or
+$ rosrun dynamixel_handler dynamixel_handler_node # raspi 
 ```
 dynamixelとのやり取り, 1から{指定したid}までのdynamixelを自動で見つけてくれる．
-{指定したid}の指定方法はros paramにしてあるがlaunchファイルを書く元気がない．
 dynamixelへの角度指令をsubして，dynamixelを位置制御する．
 
+#### 3-1 脚への制御指令を受け付けるノード
 ```
 $ rosrun topoquad_master leg_node
 ```
 ロボットの関節にどのIDのdynamixelがどんな向きでついているかを知っているノード．
-関節角の指令をsubして，dynamixelへの角度指令に直してpubしている．
+脚の関節角の指令をsubして，dynamixelへの角度指令に直してpubしている．
+
+#### 3-1 首への制御指令を受け付けるノード
+```
+$ rosrun topoquad_master neck_node
+```
+機能は同上．
+
+#### 4-1 脚への制御指令を出力するノード
+```
+$ rosrun topoquad_control leg_sample_control.py
+```
+ロボットの制御を行うためのノード．
+脚の関節角の指令をpubし続ける．
+サンプルなので歩容は適当．
+
+#### 4-2 首への制御指令を出力するノード
+```
+$ rosrun topoquad_control neck_tracking_target.py
+```
+ロボットの制御を行うためのノード．
+首の関節角の指令をpubし続ける．
+下記nodeからpubされる`/target_position/ratio`トピックの値を`(0,0)`にするように首(pantilt機構に取り付けられたカメラ)を動かす．
+制御は適当なpid制御．
 
 ```
-$ rosrun topoquad_control sample_control_spider.py
+$ rosrun topoquad_control detect_target_color.py
 ```
-ロボットの制御を行うためのノード．関節角の指令をpublishし続ける．
+カメラ画像`/camera/color/image_raw`から適当な色(デフォルトは赤)を検出して，その位置の画角に対する割合を`/target_position/ratio`トピックとしてpubする．
+
+
+
+## トピックについて
+各pkgのReadMeを参照
 
 ## dynamixel id map
-topoquad_master pkg の leg_node が 持っている.
+
+#### 脚
+topoquad_master pkg の leg_node が 持っている情報.
  - 後右 :  4  3  2
  - 前右 : 14 13 12
  - 前左 : 24 23 22
  - 後左 : 34 33 32
 　　（根元 <--> 足先）
 
-コード内の表現は以下の様
+ launchから書き換え可能．
 
-```cpp
-    //                    dyn_ID, ギア比, 初期姿勢, 関節位置 (, 関節姿勢 未実装)
-    leg_BR.initialize( Joint{  4, -1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  3, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{  2, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );
-    leg_FR.initialize( Joint{ 14, -1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 13, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 12, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  ); 
-    leg_FL.initialize( Joint{ 24, +1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 23, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 22, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );
-    leg_BL.initialize( Joint{ 34, +1.0,   0.0 , Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 33, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) },
-                       Joint{ 32, +1.0, M_PI/4, Eigen::Vector3d(0.0, 0.0, 0.0) }  );     
-```
+#### 首(optional)
+topoquad_master pkg の neck_node が 持っている情報.
+ - Pan : 43
+ - Tilt : 42
+
+ launchから書き換え可能．
+
+## メモ
+dynamixel_handlerは将来リポジトリごと独立させ，依存パッケージとしてのみ記述する（realsenseのSDKみたいに）
+
