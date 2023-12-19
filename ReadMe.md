@@ -83,6 +83,23 @@ $ rosrun topoquad_control detect_target_color.py
 ```
 カメラ画像`/camera/color/image_raw`から適当な色(デフォルトは赤)を検出して，その位置の画角に対する割合を`/target_position/ratio`トピックとしてpubする．
 
+## 便利なエイリアスの設定
+
+#### 特定の姿勢をワンコマンドで指令できるようにする．
+```
+alias pose1="rostopic pub /spider/cmd/leg_angle topoquad_master/QuadRobotCmdLegAngle \
+\"
+angles_FR: [0, 1.0, 0.52]
+angles_FL: [0, 1.0, 0.52]
+angles_BR: [0, 1.0, 0.52]
+angles_BL: [0, 1.0, 0.52]
+\" -1" 
+```
+これを./bashrcなりに書いておく．
+```
+$ pose1
+```
+とすれば，指定した姿勢になるようにros topicがpubされる．
 
 
 ## トピックについて
