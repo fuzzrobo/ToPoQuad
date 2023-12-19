@@ -3,7 +3,7 @@
 ## 現状実装されている機能
  - dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
  - dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
- - dynamixelのエラーの検出と再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
+ - dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node
  - 脚への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
  - 首への角度指令をdynamixelへの角度指令への変換 [topoquad_master/leg_node]
  - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
