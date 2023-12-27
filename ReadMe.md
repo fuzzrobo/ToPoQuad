@@ -109,7 +109,7 @@ $ pose1
 
 ## トピックについて
 各pkgのReadMeを参照．
-（まだ書けてないので，直接launch or src読んでください，すいません．）
+（まだ controlとdynamixel_handlerは書けてないので，直接launch or src読んでください，すいません．）
 
 ## dynamixel id map
 
