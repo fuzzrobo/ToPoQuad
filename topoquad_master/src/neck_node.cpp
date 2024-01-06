@@ -6,11 +6,14 @@ using Eigen::Vector3d;
 #include "neck_node.hpp"
 
 #include <dynamixel_handler/DynamixelState.h>
-#include <dynamixel_handler/DynamixelCmd.h>
+#include <dynamixel_handler/DynamixelCommand_X_ControlCurrentPosition.h>
 #include <topoquad_master/QuadRobotStateNeck.h>
 #include <topoquad_master/QuadRobotCmdNeckAngle.h>
 
 using std::vector;
+
+#define rad2deg (180.0/M_PI)
+#define deg2rad (M_PI/180.0)
 
 class Neck {
     public:
@@ -47,12 +50,12 @@ void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdNeckAngle::ConstPtr& 
 }
 
 void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr& msg) {
-     for (int i=0; i<msg->ids.size(); i++) {
-        if(msg->ids[i] == present_neck.pan_.id_) present_neck.pan_.SetServoAngle(msg->present_angles[i]);
-        if(msg->ids[i] == present_neck.tilt_.id_) present_neck.tilt_.SetServoAngle(msg->present_angles[i]);
+     for (int i=0; i<msg->id_list.size(); i++) {
+        if(msg->id_list[i] == present_neck.pan_.id_) present_neck.pan_.SetServoAngle(msg->position__deg[i]*deg2rad);
+        if(msg->id_list[i] == present_neck.tilt_.id_) present_neck.tilt_.SetServoAngle(msg->position__deg[i]*deg2rad);
         present_neck.is_updated_ = true;
-        if(msg->ids[i] == goal_neck.pan_.id_) goal_neck.pan_.SetServoAngle(msg->goal_angles[i]);
-        if(msg->ids[i] == goal_neck.tilt_.id_) goal_neck.tilt_.SetServoAngle(msg->goal_angles[i]);
+        if(msg->id_list[i] == goal_neck.pan_.id_) goal_neck.pan_.SetServoAngle(msg->position__deg[i]*rad2deg);
+        if(msg->id_list[i] == goal_neck.tilt_.id_) goal_neck.tilt_.SetServoAngle(msg->position__deg[i]*rad2deg);
         goal_neck.is_updated_ = true;
      }
 }
@@ -71,7 +74,7 @@ int main(int argc, char **argv) {
     present_neck = target_neck;
 
     ros::Subscriber sub_neck_angle = nh.subscribe("/neck/angle", 10, CallBackOfLegAngle);
-    ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCmd>("/dynamixel/cmd", 10);
+    ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
     
     ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe
     ros::Publisher  pub_neck_state_p   = nh.advertise<topoquad_master::QuadRobotStateNeck>("/neck/state/present", 10); // サーボの角度を関節の状態に変換してpublish
@@ -82,12 +85,11 @@ int main(int argc, char **argv) {
         ros::spinOnce();  //
 
         if( target_neck.is_updated_ || target_neck != goal_neck ){
-            dynamixel_handler::DynamixelCmd dyn_msg;
-            dyn_msg.command = "write";
-            dyn_msg.ids.push_back(target_neck.pan_.id_);
-            dyn_msg.ids.push_back(target_neck.tilt_.id_);
-            dyn_msg.goal_angles.push_back(target_neck.pan_.servo_angle_);
-            dyn_msg.goal_angles.push_back(target_neck.tilt_.servo_angle_);
+            dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_msg;
+            dyn_msg.id_list.push_back(target_neck.pan_.id_);
+            dyn_msg.id_list.push_back(target_neck.tilt_.id_);
+            dyn_msg.position__deg.push_back(target_neck.pan_.servo_angle_ * rad2deg);
+            dyn_msg.position__deg.push_back(target_neck.tilt_.servo_angle_ * rad2deg);
             pub_dyn_cmd.publish(dyn_msg);
             target_neck.is_updated_ = false;
         }

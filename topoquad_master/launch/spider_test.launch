@@ -1,6 +1,6 @@
 <launch>
 
-  <include file="$(find dynamixel_handler)/launch/dynamixel_ubuntu.launch" />
+  <include file="$(find dynamixel_handler)/launch/dynamixel_handler.launch" />
 
   <group ns="spider">
     <node pkg="topoquad_master" name="leg_node" type="leg_node">
