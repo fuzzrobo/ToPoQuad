@@ -31,11 +31,11 @@ $ roslaunch topoquad_control tracking_target_color_with_sample_walk.launch
    ┗ {topoquad_master}/launch/spider_test.launch
         ┣ leg_node
         ┣ neck_node
-        ┗ {dynamixel_handler}/launch/dynamixel_ubuntu.launch
+        ┗ {dynamixel_handler}/launch/dynamixel_handler.launch
              ┗ dynamixel_handler_node
 ```
 デフォルトだと"Dynamixelとの通信を司るノード"のusb deviceの値が`DEVICE=/dev/ttyUSB0`になっているので，適当に変更すること．
-`dynamixel_ubuntu.launch`を複製して，`DEVICE`をラズパイ用に変更した`dynamixel_raspi.launch`を作成するとよいかと思われる．
+`dynamixel_handler.launch`を複製して，`DEVICE`をラズパイ用に変更した`dynamixel_raspi.launch`を作成するとよいかと思われる．
 
 ### 個別にrosrun
 
@@ -45,13 +45,7 @@ $ roscore
 ```
 
 #### 2 Dynamixelとの通信を司るノード
-```
-$ rosrun dynamixel_handler dynamixel_handler_node _DEVICE:=/dev/ttyUSB0 # Ubuntu
-or
-$ rosrun dynamixel_handler dynamixel_handler_node # raspi 
-```
-dynamixelとのやり取り, 1から{指定したid}までのdynamixelを自動で見つけてくれる．
-dynamixelへの角度指令をsubして，dynamixelを位置制御する．
+[こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros1/tree/main)
 
 #### 3-1 脚への制御指令を受け付けるノード
 ```
@@ -109,7 +103,7 @@ $ pose1
 
 ## トピックについて
 各pkgのReadMeを参照．
-（まだ controlとdynamixel_handlerは書けてないので，直接launch or src読んでください，すいません．）
+（まだ controlは書けてないので，直接launch or src読んでください，すいません．）
 
 ## dynamixel id map
 
@@ -131,5 +125,5 @@ topoquad_master pkg の neck_node が 持っている情報.
  launchから書き換え可能．
 
 ## メモ
-dynamixel_handlerは将来リポジトリごと独立させ，依存パッケージとしてのみ記述する（realsenseのSDKみたいに）
+dynamixel_handlerは将来リポジトリごと独立させた．
 
