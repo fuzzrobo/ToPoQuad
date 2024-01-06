@@ -10,13 +10,26 @@
 #include <topoquad_master/QuadRobotCmdLegPoint.h>
 
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Pose2D.h>
 
 using std::ref;
 using std::vector;
+using geometry_msgs::Point;
+using geometry_msgs::Pose2D;
 
 class Leg {
     public:
-        Leg(): is_updated_(true), hip_yaw_(Joint(1)), hip_pitch_(Joint(2)), knee_pitch_(Joint(3)) {}
+        Leg(): Leg(0, 0, 0) {}
+        Leg(double x, double y, double theta): 
+            is_updated_(true), 
+            hip_yaw_(Joint(1)), 
+            hip_pitch_(Joint(2)), 
+            knee_pitch_(Joint(3)) { 
+                fixed_pose_.x = x;
+                fixed_pose_.y = y;
+                fixed_pose_.theta = theta;
+            }
+
         void initialize(const Joint& hip_yaw, const Joint& hip_pitch, const Joint& knee_pitch) {
             hip_yaw_ = hip_yaw;
             hip_pitch_ = hip_pitch;
@@ -54,41 +67,34 @@ class Leg {
             return !(*this == leg);
         }
         
-
         bool is_updated_; // 関節角が更新されたかどうか
         Joint hip_yaw_;
         Joint hip_pitch_;
         Joint knee_pitch_;
+        Pose2D fixed_pose_;
 };
 
-Leg target_leg_FR, goal_leg_FR, present_leg_FR; 
-Leg target_leg_FL, goal_leg_FL, present_leg_FL; 
-Leg target_leg_BR, goal_leg_BR, present_leg_BR; 
-Leg target_leg_BL, goal_leg_BL, present_leg_BL; 
-
-#define ANGLE_FR M_PI_4 + M_PI_2 * 0
-#define ANGLE_FL M_PI_4 + M_PI_2 * 1
-#define ANGLE_BR M_PI_4 + M_PI_2 * 2
-#define ANGLE_BL M_PI_4 + M_PI_2 * 3
+#define ANGLE_FR (M_PI_4 + M_PI_2 * 0)
+#define ANGLE_FL (M_PI_4 + M_PI_2 * 1)
+#define ANGLE_BR (M_PI_4 + M_PI_2 * 2)
+#define ANGLE_BL (M_PI_4 + M_PI_2 * 3)
 
 #define LENGTH_BASE 0.052
 #define LENGTH_HIP_YAW 0.0445
 #define LENGTH_HIP_PITCH 0.0445
 #define LENGTH_KNEE_PITCH 0.0715
 
-double FR[3] = {0, 0, ANGLE_FR};
-double FL[3] = {0, 0, ANGLE_FL};
-double BR[3] = {0, 0, ANGLE_BR};
-double BL[3] = {0, 0, ANGLE_BL};
-
-ros::Publisher pub_leg_cmd;
+Leg target_leg_FR(LENGTH_BASE*cos(ANGLE_FR), LENGTH_BASE*sin(ANGLE_FR), ANGLE_FR), goal_leg_FR, present_leg_FR; 
+Leg target_leg_FL(LENGTH_BASE*cos(ANGLE_FL), LENGTH_BASE*sin(ANGLE_FL), ANGLE_FL), goal_leg_FL, present_leg_FL; 
+Leg target_leg_BR(LENGTH_BASE*cos(ANGLE_BR), LENGTH_BASE*sin(ANGLE_BR), ANGLE_BR), goal_leg_BR, present_leg_BR; 
+Leg target_leg_BL(LENGTH_BASE*cos(ANGLE_BL), LENGTH_BASE*sin(ANGLE_BL), ANGLE_BL), goal_leg_BL, present_leg_BL; 
 
 //https://qiita.com/Ninagawa123/items/4ae058d819de1d5b698a
-inline double two_link_ik_t1(const double x, const double y, const double l1=LENGTH_HIP_PITCH, const double l2=LENGTH_KNEE_PITCH){
+inline double two_link_ik_t1(const double x, const double y, const double l1, const double l2){
     return atan2(y, x) - acos((l1*l1 - l2*l2 + (x*x+y*y)) / (2*l1*sqrt(x*x+y*y)));
 }
 
-inline double two_link_ik_t2(const double x, const double y, const double l1=LENGTH_HIP_PITCH, const double l2=LENGTH_KNEE_PITCH){
+inline double two_link_ik_t2(const double x, const double y, const double l1, const double l2){
     return M_PI - acos((l1*l1 + l2*l2 - (x*x+y*y)) / (2*l1*l2));
 }
 
@@ -96,14 +102,14 @@ inline double normalizeAngle(const double theta){
     return theta - (2*M_PI) * floor((theta + M_PI) / (2*M_PI));
 }
 
-std::vector<double> leg_ik(geometry_msgs::Point p, const double *leg){
-    std::vector<double> angles(3);
-    double dx = p.x - leg[0];
-    double dy = p.y - leg[1];
+vector<double> leg_ik(const Point& tp, const Pose2D& fp){
+    double dx = tp.x - fp.x;
+    double dy = tp.y - fp.y;
     double x = hypot(dx, dy) - LENGTH_HIP_YAW;
-    angles[0] = normalizeAngle(atan2(dy, dx) - leg[2]);
-    angles[1] = -two_link_ik_t1(x, p.z);
-    angles[2] = -two_link_ik_t2(x, p.z);
+    vector<double> angles(3);
+    angles[0] = normalizeAngle(atan2(dy, dx) - fp.theta);
+    angles[1] = -two_link_ik_t1(x, tp.z, LENGTH_HIP_PITCH, LENGTH_KNEE_PITCH);
+    angles[2] = -two_link_ik_t2(x, tp.z, LENGTH_HIP_PITCH, LENGTH_KNEE_PITCH);
     return angles;
 }
 
@@ -116,10 +122,10 @@ void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdLegAngle::ConstPtr& m
 }
 
 void CallBackOfLegPoint(const topoquad_master::QuadRobotCmdLegPoint::ConstPtr& msg){
-    target_leg_FR.SetJointAngles(leg_ik(msg->leg_FR, FR));
-    target_leg_FL.SetJointAngles(leg_ik(msg->leg_FL, FL));
-    target_leg_BR.SetJointAngles(leg_ik(msg->leg_BR, BR));
-    target_leg_BL.SetJointAngles(leg_ik(msg->leg_BL, BL));
+    target_leg_FR.SetJointAngles(leg_ik(msg->leg_FR, target_leg_FR.fixed_pose_));
+    target_leg_FL.SetJointAngles(leg_ik(msg->leg_FL, target_leg_FL.fixed_pose_));
+    target_leg_BR.SetJointAngles(leg_ik(msg->leg_BR, target_leg_BR.fixed_pose_));
+    target_leg_BL.SetJointAngles(leg_ik(msg->leg_BL, target_leg_BL.fixed_pose_));
 }
 
 void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr& msg) {
@@ -181,21 +187,16 @@ int main(int argc, char **argv) {
     goal_leg_BR = target_leg_BR;
     goal_leg_BL = target_leg_BL;
 
-    FR[0] = LENGTH_BASE * cos(ANGLE_FR), FR[1] = LENGTH_BASE * sin(ANGLE_FR);
-    FL[0] = LENGTH_BASE * cos(ANGLE_FL), FL[1] = LENGTH_BASE * sin(ANGLE_FL);
-    BR[0] = LENGTH_BASE * cos(ANGLE_BR), BR[1] = LENGTH_BASE * sin(ANGLE_BR);
-    BL[0] = LENGTH_BASE * cos(ANGLE_BL), BL[1] = LENGTH_BASE * sin(ANGLE_BL);         
-
     ros::Subscriber sub_leg_point = nh.subscribe("/legs/point", 10, CallBackOfLegPoint);
     ros::Subscriber sub_leg_angle = nh.subscribe("/legs/angle", 10, CallBackOfLegAngle);
     ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCmd>("/dynamixel/cmd", 10);
     
     ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe
     ros::Publisher  pub_leg_state_p = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/present", 10); // サーボの角度を関節の状態に変換してpublish
-    ros::Publisher  pub_leg_state_g = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/goal", 10); // サーボの角度を関節の状態に変換してpublish
+    ros::Publisher  pub_leg_state_g = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/goal", 10);    // サーボの角度を関節の状態に変換してpublish
 
     vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)};
-    vector<std::reference_wrapper<Leg>> goals = {ref(goal_leg_FR), ref(goal_leg_FL), ref(goal_leg_BR), ref(goal_leg_BL)};
+    vector<std::reference_wrapper<Leg>> goals =   {ref(goal_leg_FR  ), ref(goal_leg_FL  ), ref(goal_leg_BR  ), ref(goal_leg_BL  )};
     ros::Rate rate(200);
     while(ros::ok()) {
         ros::spinOnce();
