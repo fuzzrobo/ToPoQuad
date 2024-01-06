@@ -9,6 +9,9 @@
 #include <topoquad_master/QuadRobotCmdLegAngle.h>
 #include <topoquad_master/QuadRobotCmdLegPoint.h>
 
+#include <cmath>
+using std::isnan;
+
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Pose2D.h>
 
@@ -16,6 +19,19 @@ using std::ref;
 using std::vector;
 using geometry_msgs::Point;
 using geometry_msgs::Pose2D;
+
+//https://qiita.com/Ninagawa123/items/4ae058d819de1d5b698a
+inline double two_link_ik_t1(const double x, const double y, const double l1, const double l2){
+    return atan2(y, x) + acos(((x*x+y*y) + l1*l1 - l2*l2) / (2*l1*sqrt(x*x+y*y)));
+}
+
+inline double two_link_ik_t2(const double x, const double y, const double l1, const double l2){
+    return - acos(((x*x+y*y) - l1*l1 - l2*l2 ) / (2*l1*l2));
+}
+
+inline double normalizeAngle(const double theta){
+    return theta - (2*M_PI) * floor((theta + M_PI) / (2*M_PI));
+}
 
 class Leg {
     public:
@@ -89,18 +105,6 @@ Leg target_leg_FL(LENGTH_BASE*cos(ANGLE_FL), LENGTH_BASE*sin(ANGLE_FL), ANGLE_FL
 Leg target_leg_BR(LENGTH_BASE*cos(ANGLE_BR), LENGTH_BASE*sin(ANGLE_BR), ANGLE_BR), goal_leg_BR, present_leg_BR; 
 Leg target_leg_BL(LENGTH_BASE*cos(ANGLE_BL), LENGTH_BASE*sin(ANGLE_BL), ANGLE_BL), goal_leg_BL, present_leg_BL; 
 
-//https://qiita.com/Ninagawa123/items/4ae058d819de1d5b698a
-inline double two_link_ik_t1(const double x, const double y, const double l1, const double l2){
-    return atan2(y, x) - acos((l1*l1 - l2*l2 + (x*x+y*y)) / (2*l1*sqrt(x*x+y*y)));
-}
-
-inline double two_link_ik_t2(const double x, const double y, const double l1, const double l2){
-    return M_PI - acos((l1*l1 + l2*l2 - (x*x+y*y)) / (2*l1*l2));
-}
-
-inline double normalizeAngle(const double theta){
-    return theta - (2*M_PI) * floor((theta + M_PI) / (2*M_PI));
-}
 
 vector<double> leg_ik(const Point& tp, const Pose2D& fp){
     double dx = tp.x - fp.x;
@@ -113,7 +117,6 @@ vector<double> leg_ik(const Point& tp, const Pose2D& fp){
     return angles;
 }
 
-
 void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdLegAngle::ConstPtr& msg) {
     if(msg->angles_FR.size() > 1) target_leg_FR.SetJointAngles(msg->angles_FR);
     if(msg->angles_FL.size() > 1) target_leg_FL.SetJointAngles(msg->angles_FL);
@@ -122,10 +125,14 @@ void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdLegAngle::ConstPtr& m
 }
 
 void CallBackOfLegPoint(const topoquad_master::QuadRobotCmdLegPoint::ConstPtr& msg){
-    target_leg_FR.SetJointAngles(leg_ik(msg->leg_FR, target_leg_FR.fixed_pose_));
-    target_leg_FL.SetJointAngles(leg_ik(msg->leg_FL, target_leg_FL.fixed_pose_));
-    target_leg_BR.SetJointAngles(leg_ik(msg->leg_BR, target_leg_BR.fixed_pose_));
-    target_leg_BL.SetJointAngles(leg_ik(msg->leg_BL, target_leg_BL.fixed_pose_));
+    auto angle_FR = leg_ik(msg->leg_FR, target_leg_FR.fixed_pose_);
+    if (!isnan(angle_FR[0]) && !isnan(angle_FR[1]) && !isnan(angle_FR[2])) target_leg_FR.SetJointAngles(angle_FR);
+    auto angle_FL = leg_ik(msg->leg_FL, target_leg_FL.fixed_pose_);
+    if (!isnan(angle_FL[0]) && !isnan(angle_FL[1]) && !isnan(angle_FL[2])) target_leg_FL.SetJointAngles(angle_FL);
+    auto angle_BR = leg_ik(msg->leg_BR, target_leg_BR.fixed_pose_);
+    if (!isnan(angle_BR[0]) && !isnan(angle_BR[1]) && !isnan(angle_BR[2])) target_leg_BR.SetJointAngles(angle_BR);
+    auto angle_BL = leg_ik(msg->leg_BL, target_leg_BL.fixed_pose_);
+    if (!isnan(angle_BL[0]) && !isnan(angle_BL[1]) && !isnan(angle_BL[2])) target_leg_BL.SetJointAngles(angle_BL);
 }
 
 void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr& msg) {
@@ -164,18 +171,18 @@ int main(int argc, char **argv) {
     if (!nh_p.getParam("FL_leg_dynamixel_ID",   ids_FL)) ids_FL = {24,23,22};
     if (!nh_p.getParam("BL_leg_dynamixel_ID",   ids_BL)) ids_BL = {34,33,32};
 
-    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/}  );
-    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/}  ); 
-    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/}  );
-    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/},
-                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.5/*Nm*/}  );
+    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/}  );
+    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/}  ); 
+    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/}  );
+    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/},
+                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.2/*Nm*/}  );
 
     present_leg_FR = target_leg_FR;
     present_leg_FL = target_leg_FL;
@@ -200,7 +207,6 @@ int main(int argc, char **argv) {
     ros::Rate rate(200);
     while(ros::ok()) {
         ros::spinOnce();
-        
         dynamixel_handler::DynamixelCmd dyn_msg;
         dyn_msg.command = "write";
         bool is_diff = false;
