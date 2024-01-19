@@ -95,9 +95,9 @@ class Leg {
         }
 
         bool operator==(const Leg& leg) const {
-            return ( fabs(hip_yaw_.joint_angle_ - leg.hip_yaw_.joint_angle_) < 5e-3 
-                    && fabs(hip_pitch_.joint_angle_ - leg.hip_pitch_.joint_angle_) < 5e-3 
-                    && fabs(knee_pitch_.joint_angle_ - leg.knee_pitch_.joint_angle_) < 5e-3 );
+            return ( fabs(hip_yaw_.joint_angle_ - leg.hip_yaw_.joint_angle_) < 2e-2 
+                    && fabs(hip_pitch_.joint_angle_ - leg.hip_pitch_.joint_angle_) < 2e-2 
+                    && fabs(knee_pitch_.joint_angle_ - leg.knee_pitch_.joint_angle_) < 2e-2 );
         }
         bool operator!=(const Leg& leg) const {
             return !(*this == leg);
@@ -138,8 +138,9 @@ vector<double> leg_ik(const Point& tp, const Pose2D& fp, const int& sign){
 
 Point leg_k( const vector<double>& angles, const Pose2D& fp, const int& sign){
     Point k;
-    k.x = fp.x + LENGTH_HIP_YAW * cos(fp.theta + sign * angles[0]);
-    k.y = fp.y + LENGTH_HIP_YAW * sin(fp.theta + sign * angles[0]);
+    double l = LENGTH_HIP_PITCH * cos(angles[1]) + LENGTH_KNEE_PITCH * cos(angles[1] + angles[2]); 
+    k.x = fp.x + (LENGTH_HIP_YAW + l) * cos(fp.theta + sign * angles[0]);
+    k.y = fp.y + (LENGTH_HIP_YAW + l) * sin(fp.theta + sign * angles[0]);
     k.z = LENGTH_HIP_PITCH * sin(angles[1]) + LENGTH_KNEE_PITCH * sin(angles[1] + angles[2]);
     return k;
 }
