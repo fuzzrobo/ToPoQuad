@@ -5,7 +5,6 @@
 
 #include <dynamixel_handler/DynamixelState.h>
 #include <dynamixel_handler/DynamixelCommand_X_ControlCurrentPosition.h>
-#include <dynamixel_handler/DynamixelCommand_Profile.h>
 #include <topoquad_master/QuadRobotStateLeg.h>
 #include <topoquad_master/QuadRobotCmdLegAngle.h>
 #include <topoquad_master/QuadRobotCmdLegPoint.h>
@@ -199,18 +198,18 @@ int main(int argc, char **argv) {
     if (!nh_p.getParam("FL_leg_dynamixel_ID",   ids_FL)) ids_FL = {24,23,22};
     if (!nh_p.getParam("BL_leg_dynamixel_ID",   ids_BL)) ids_BL = {34,33,32};
 
-    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/}  );
-    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/}  ); 
-    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/}  );
-    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/},
-                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.4/*Nm*/}  );
+    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
+    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  ); 
+    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
+    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
+                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
 
     present_leg_FR = target_leg_FR;
     present_leg_FL = target_leg_FL;
@@ -228,31 +227,34 @@ int main(int argc, char **argv) {
     ros::Subscriber sub_leg_point = nh.subscribe("/legs/point", 10, CallBackOfLegPoint);
     ros::Subscriber sub_leg_angle = nh.subscribe("/legs/angle", 10, CallBackOfLegAngle);
     ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
-    ros::Publisher  pub_dyn_config= nh.advertise<dynamixel_handler::DynamixelCommand_Profile>("/dynamixel/cmd/profile", 10);
 
     ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe
     ros::Publisher  pub_leg_state_p = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/present", 10); // サーボの角度を関節の状態に変換してpublish
     ros::Publisher  pub_leg_state_g = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/goal",    10);    // サーボの角度を関節の状態に変換してpublish
 
-    dynamixel_handler::DynamixelCommand_Profile dyn_config_msg;
+    dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_config_msg;
 
     for ( auto& leg : {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)}) {
         dyn_config_msg.id_list.push_back(leg.get().hip_yaw_.id_);
         dyn_config_msg.id_list.push_back(leg.get().hip_pitch_.id_);
         dyn_config_msg.id_list.push_back(leg.get().knee_pitch_.id_);
-        dyn_config_msg.profile_vel__deg_s.push_back(200);
-        dyn_config_msg.profile_vel__deg_s.push_back(200);
-        dyn_config_msg.profile_vel__deg_s.push_back(200);
-        dyn_config_msg.profile_acc__deg_ss.push_back(2000);
-        dyn_config_msg.profile_acc__deg_ss.push_back(2000);
-        dyn_config_msg.profile_acc__deg_ss.push_back(2000);
+        dyn_config_msg.profile_vel__deg_s.push_back(100);
+        dyn_config_msg.profile_vel__deg_s.push_back(100);
+        dyn_config_msg.profile_vel__deg_s.push_back(100);
+        dyn_config_msg.profile_acc__deg_ss.push_back(200);
+        dyn_config_msg.profile_acc__deg_ss.push_back(200);
+        dyn_config_msg.profile_acc__deg_ss.push_back(200);
     }
     ros::Duration(1.0).sleep();
-    pub_dyn_config.publish(dyn_config_msg);
+    pub_dyn_cmd.publish(dyn_config_msg);
 
-    ros::Rate rate(200);
+    ros::Rate rate(500);
+    int cnt = 0;
     while(ros::ok()) {
+        if (++cnt%200==0) pub_dyn_cmd.publish(dyn_config_msg);
+
         ros::spinOnce();
+
         dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_msg;
         bool is_diff = false;
         for ( int i=0; i<4; i++) {
@@ -265,9 +267,9 @@ int main(int argc, char **argv) {
             dyn_msg.position__deg.push_back(tleg.get().hip_yaw_.servo_angle_*rad2deg);
             dyn_msg.position__deg.push_back(tleg.get().hip_pitch_.servo_angle_*rad2deg);
             dyn_msg.position__deg.push_back(tleg.get().knee_pitch_.servo_angle_*rad2deg);
-            dyn_msg.current__mA.push_back(tleg.get().hip_yaw_.servo_current_);
-            dyn_msg.current__mA.push_back(tleg.get().hip_pitch_.servo_current_);
-            dyn_msg.current__mA.push_back(tleg.get().knee_pitch_.servo_current_);
+            // dyn_msg.current__mA.push_back(tleg.get().hip_yaw_.servo_current_);
+            // dyn_msg.current__mA.push_back(tleg.get().hip_pitch_.servo_current_);
+            // dyn_msg.current__mA.push_back(tleg.get().knee_pitch_.servo_current_);
             tleg.get().is_updated_ = false;
         }
         if (dyn_msg.id_list.size() != 0) pub_dyn_cmd.publish(dyn_msg);
