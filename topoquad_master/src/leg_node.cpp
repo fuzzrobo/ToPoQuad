@@ -124,6 +124,10 @@ Leg target_leg_FL(LENGTH_BASE*cos(ANGLE_FL), LENGTH_BASE*sin(ANGLE_FL), ANGLE_FL
 Leg target_leg_BR(LENGTH_BASE*cos(ANGLE_BR), LENGTH_BASE*sin(ANGLE_BR), ANGLE_BR), goal_leg_BR, present_leg_BR; 
 Leg target_leg_BL(LENGTH_BASE*cos(ANGLE_BL), LENGTH_BASE*sin(ANGLE_BL), ANGLE_BL), goal_leg_BL, present_leg_BL; 
 
+ros::Publisher  pub_dyn_cmd    ;
+ros::Publisher  pub_leg_state_p;
+ros::Publisher  pub_leg_state_g;
+
 vector<double> leg_ik(const Point& tp, const Pose2D& fp, const int& sign){
     double dx = tp.x - fp.x;
     double dy = tp.y - fp.y;
@@ -144,11 +148,36 @@ Point leg_k( const vector<double>& angles, const Pose2D& fp, const int& sign){
     return k;
 }
 
+void BroadcastDynamixelCommand(){
+    static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)};
+    static vector<std::reference_wrapper<Leg>> goals =   {ref(goal_leg_FR  ), ref(goal_leg_FL  ), ref(goal_leg_BR  ), ref(goal_leg_BL  )};
+    dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_msg;
+    bool is_diff = false;
+    for ( int i=0; i<4; i++) {
+        auto& tleg = targets[i];
+        auto& gleg = goals[i];
+        if( !tleg.get().is_updated_ ) continue; //更新されたときだけpublishする
+        dyn_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
+        dyn_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
+        dyn_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
+        dyn_msg.position__deg.push_back(tleg.get().hip_yaw_.servo_angle_*rad2deg);
+        dyn_msg.position__deg.push_back(tleg.get().hip_pitch_.servo_angle_*rad2deg);
+        dyn_msg.position__deg.push_back(tleg.get().knee_pitch_.servo_angle_*rad2deg);
+        dyn_msg.current__mA.push_back(tleg.get().hip_yaw_.servo_current_);
+        dyn_msg.current__mA.push_back(tleg.get().hip_pitch_.servo_current_);
+        dyn_msg.current__mA.push_back(tleg.get().knee_pitch_.servo_current_);
+        tleg.get().is_updated_ = false;
+    }
+    if (dyn_msg.id_list.size() != 0) pub_dyn_cmd.publish(dyn_msg);
+}
+
+
 void CallBackOfLegAngle(const topoquad_master::QuadRobotCmdLegAngle::ConstPtr& msg) {
     if(msg->angles_FR.size() > 1) target_leg_FR.SetJointAngles(msg->angles_FR);
     if(msg->angles_FL.size() > 1) target_leg_FL.SetJointAngles(msg->angles_FL);
     if(msg->angles_BR.size() > 1) target_leg_BR.SetJointAngles(msg->angles_BR);
     if(msg->angles_BL.size() > 1) target_leg_BL.SetJointAngles(msg->angles_BL);
+    BroadcastDynamixelCommand();
 }
 
 void CallBackOfLegPoint(const topoquad_master::QuadRobotCmdLegPoint::ConstPtr& msg){
@@ -160,6 +189,46 @@ void CallBackOfLegPoint(const topoquad_master::QuadRobotCmdLegPoint::ConstPtr& m
     if (!isnan(angle_BR[0]) && !isnan(angle_BR[1]) && !isnan(angle_BR[2])) target_leg_BR.SetJointAngles(angle_BR);
     auto angle_BL = leg_ik(msg->leg_BL, target_leg_BL.fixed_pose_, -1);
     if (!isnan(angle_BL[0]) && !isnan(angle_BL[1]) && !isnan(angle_BL[2])) target_leg_BL.SetJointAngles(angle_BL);
+    BroadcastDynamixelCommand();
+}
+
+void BroadcastLegState(std::string flag){
+    static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_FR), ref(present_leg_FL), ref(present_leg_BR), ref(present_leg_BL)};
+    static vector<std::reference_wrapper<Leg>> goals =   {ref(goal_leg_FR  ), ref(goal_leg_FL  ), ref(goal_leg_BR  ), ref(goal_leg_BL  )};
+    auto legs = (flag == "present") ? presents : goals;
+
+    topoquad_master::QuadRobotStateLeg leg_msg;
+    bool is_any_updated_p = false;
+    if (legs[0].get().is_updated_) {
+        leg_msg.angles_FR = legs[0].get().GetJointAngles();
+        leg_msg.torques_FR = legs[0].get().GetJointTorques();
+        leg_msg.point_FR = leg_k(leg_msg.angles_FR, legs[0].get().fixed_pose_, 1);
+        legs[0].get().is_updated_ = false;
+        is_any_updated_p = true;
+    }
+    if (legs[1].get().is_updated_) {
+        leg_msg.angles_FL = legs[1].get().GetJointAngles();
+        leg_msg.torques_FL = legs[1].get().GetJointTorques();
+        leg_msg.point_FL = leg_k(leg_msg.angles_FL, legs[1].get().fixed_pose_, -1);
+        legs[1].get().is_updated_ = false;
+        is_any_updated_p = true;
+    }
+    if (legs[2].get().is_updated_) {
+        leg_msg.angles_BR = legs[2].get().GetJointAngles();
+        leg_msg.torques_BR = legs[2].get().GetJointTorques();
+        leg_msg.point_BR = leg_k(leg_msg.angles_BR, legs[2].get().fixed_pose_, 1);
+        legs[2].get().is_updated_ = false;
+        is_any_updated_p = true;
+    }
+    if (legs[3].get().is_updated_) {
+        leg_msg.angles_BL = legs[3].get().GetJointAngles();
+        leg_msg.torques_BL = legs[3].get().GetJointTorques();
+        leg_msg.point_BL = leg_k(leg_msg.angles_BL, legs[3].get().fixed_pose_, -1);
+        legs[3].get().is_updated_ = false;
+        is_any_updated_p = true;
+    }
+
+    if (is_any_updated_p) (flag == "present") ? pub_leg_state_p.publish(leg_msg) : pub_leg_state_g.publish(leg_msg);
 }
 
 void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr& msg) {
@@ -174,6 +243,8 @@ void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr&
         }
         leg.get().is_updated_ = true;
     }
+    BroadcastLegState("present");
+
     for ( auto& leg : {ref(goal_leg_FR), ref(goal_leg_FL), ref(goal_leg_BR), ref(goal_leg_BL)}) {
         for (int i=0; i<msg->id_list.size(); i++) {
             if(msg->id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoAngle(msg->position__deg[i]*deg2rad);
@@ -185,6 +256,7 @@ void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr&
         }
         leg.get().is_updated_ = true;
     }
+    BroadcastLegState("goal");
 }
 
 int main(int argc, char **argv) {
@@ -221,16 +293,12 @@ int main(int argc, char **argv) {
     goal_leg_BR = target_leg_BR;
     goal_leg_BL = target_leg_BL;
 
-    vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)};
-    vector<std::reference_wrapper<Leg>> goals =   {ref(goal_leg_FR  ), ref(goal_leg_FL  ), ref(goal_leg_BR  ), ref(goal_leg_BL  )};
-
     ros::Subscriber sub_leg_point = nh.subscribe("/legs/point", 10, CallBackOfLegPoint);
     ros::Subscriber sub_leg_angle = nh.subscribe("/legs/angle", 10, CallBackOfLegAngle);
-    ros::Publisher  pub_dyn_cmd   = nh.advertise<dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
-
     ros::Subscriber sub_dyn_state   = nh.subscribe("/dynamixel/state",   10, CallBackOfDynamixelState);  // サーボの角度をsubscribe
-    ros::Publisher  pub_leg_state_p = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/present", 10); // サーボの角度を関節の状態に変換してpublish
-    ros::Publisher  pub_leg_state_g = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/goal",    10);    // サーボの角度を関節の状態に変換してpublish
+    pub_dyn_cmd     = nh.advertise<dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
+    pub_leg_state_p = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/present", 10); // サーボの角度を関節の状態に変換してpublish
+    pub_leg_state_g = nh.advertise<topoquad_master::QuadRobotStateLeg>("/legs/state/goal",    10);    // サーボの角度を関節の状態に変換してpublish
 
     dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_config_msg;
 
@@ -238,107 +306,25 @@ int main(int argc, char **argv) {
         dyn_config_msg.id_list.push_back(leg.get().hip_yaw_.id_);
         dyn_config_msg.id_list.push_back(leg.get().hip_pitch_.id_);
         dyn_config_msg.id_list.push_back(leg.get().knee_pitch_.id_);
-        dyn_config_msg.profile_vel__deg_s.push_back(100);
-        dyn_config_msg.profile_vel__deg_s.push_back(100);
-        dyn_config_msg.profile_vel__deg_s.push_back(100);
-        dyn_config_msg.profile_acc__deg_ss.push_back(200);
-        dyn_config_msg.profile_acc__deg_ss.push_back(200);
-        dyn_config_msg.profile_acc__deg_ss.push_back(200);
+        dyn_config_msg.profile_vel__deg_s.push_back(500);
+        dyn_config_msg.profile_vel__deg_s.push_back(500);
+        dyn_config_msg.profile_vel__deg_s.push_back(500);
+        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
+        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
+        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
     }
     ros::Duration(1.0).sleep();
     pub_dyn_cmd.publish(dyn_config_msg);
 
-    ros::Rate rate(500);
-    int cnt = 0;
-    while(ros::ok()) {
-        if (++cnt%200==0) pub_dyn_cmd.publish(dyn_config_msg);
+    ros::Rate rate(1);
 
-        ros::spinOnce();
-
-        dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_msg;
-        bool is_diff = false;
-        for ( int i=0; i<4; i++) {
-            auto& tleg = targets[i];
-            auto& gleg = goals[i];
-            if( !(tleg.get().is_updated_ || gleg.get() != tleg.get()) ) continue; //更新されたときだけpublishする
-            dyn_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
-            dyn_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
-            dyn_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
-            dyn_msg.position__deg.push_back(tleg.get().hip_yaw_.servo_angle_*rad2deg);
-            dyn_msg.position__deg.push_back(tleg.get().hip_pitch_.servo_angle_*rad2deg);
-            dyn_msg.position__deg.push_back(tleg.get().knee_pitch_.servo_angle_*rad2deg);
-            // dyn_msg.current__mA.push_back(tleg.get().hip_yaw_.servo_current_);
-            // dyn_msg.current__mA.push_back(tleg.get().hip_pitch_.servo_current_);
-            // dyn_msg.current__mA.push_back(tleg.get().knee_pitch_.servo_current_);
-            tleg.get().is_updated_ = false;
+    ros::Timer timer = nh.createTimer(
+        ros::Duration(1.0), 
+        [](const ros::TimerEvent&){
+            BroadcastDynamixelCommand();
+            BroadcastLegState("present");
+            BroadcastLegState("goal");
         }
-        if (dyn_msg.id_list.size() != 0) pub_dyn_cmd.publish(dyn_msg);
-
-        topoquad_master::QuadRobotStateLeg leg_msg_p;
-        bool is_any_updated_p = false;
-        if (present_leg_FR.is_updated_) {
-            leg_msg_p.angles_FR = present_leg_FR.GetJointAngles();
-            leg_msg_p.torques_FR = present_leg_FR.GetJointTorques();
-            leg_msg_p.point_FR = leg_k(leg_msg_p.angles_FR, present_leg_FR.fixed_pose_, 1);
-            present_leg_FR.is_updated_ = false;
-            is_any_updated_p = true;
-        }
-        if (present_leg_FL.is_updated_) {
-            leg_msg_p.angles_FL = present_leg_FL.GetJointAngles();
-            leg_msg_p.torques_FL = present_leg_FL.GetJointTorques();
-            leg_msg_p.point_FL = leg_k(leg_msg_p.angles_FL, present_leg_FL.fixed_pose_, -1);
-            present_leg_FL.is_updated_ = false;
-            is_any_updated_p = true;
-        }
-        if (present_leg_BR.is_updated_) {
-            leg_msg_p.angles_BR = present_leg_BR.GetJointAngles();
-            leg_msg_p.torques_BR = present_leg_BR.GetJointTorques();
-            leg_msg_p.point_BR = leg_k(leg_msg_p.angles_BR, present_leg_BR.fixed_pose_, 1);
-            present_leg_BR.is_updated_ = false;
-            is_any_updated_p = true;
-        }
-        if (present_leg_BL.is_updated_) {
-            leg_msg_p.angles_BL = present_leg_BL.GetJointAngles();
-            leg_msg_p.torques_BL = present_leg_BL.GetJointTorques();
-            leg_msg_p.point_BL = leg_k(leg_msg_p.angles_BL, present_leg_BL.fixed_pose_, -1);
-            present_leg_BL.is_updated_ = false;
-            is_any_updated_p = true;
-        }
-
-        if (is_any_updated_p) pub_leg_state_p.publish(leg_msg_p);
-
-        topoquad_master::QuadRobotStateLeg leg_msg_g;
-        bool is_any_updated_g = false;
-        if (goal_leg_FR.is_updated_) {
-            leg_msg_g.angles_FR = goal_leg_FR.GetJointAngles();
-            leg_msg_g.torques_FR = goal_leg_FR.GetJointTorques();
-            leg_msg_g.point_FR = leg_k(leg_msg_g.angles_FR, goal_leg_FR.fixed_pose_, 1);
-            goal_leg_FR.is_updated_ = false;
-            is_any_updated_g = true;
-        }
-        if (goal_leg_FL.is_updated_) {
-            leg_msg_g.angles_FL = goal_leg_FL.GetJointAngles();
-            leg_msg_g.torques_FL = goal_leg_FL.GetJointTorques();
-            leg_msg_g.point_FL = leg_k(leg_msg_g.angles_FL, goal_leg_FL.fixed_pose_, -1);
-            goal_leg_FL.is_updated_ = false;
-            is_any_updated_g = true;
-        }
-        if (goal_leg_BR.is_updated_) {
-            leg_msg_g.angles_BR = goal_leg_BR.GetJointAngles();
-            leg_msg_g.torques_BR = goal_leg_BR.GetJointTorques();
-            leg_msg_g.point_BR = leg_k(leg_msg_g.angles_BR, goal_leg_BR.fixed_pose_, 1);
-            goal_leg_BR.is_updated_ = false;
-            is_any_updated_g = true;
-        }
-        if (goal_leg_BL.is_updated_) {
-            leg_msg_g.angles_BL = goal_leg_BL.GetJointAngles();
-            leg_msg_g.torques_BL = goal_leg_BL.GetJointTorques();
-            leg_msg_g.point_BL = leg_k(leg_msg_g.angles_BL, goal_leg_BL.fixed_pose_, -1);
-            goal_leg_BL.is_updated_ = false;
-            is_any_updated_g = true;
-        }
-
-        if (is_any_updated_g) pub_leg_state_g.publish(leg_msg_g);
-        rate.sleep();
-    }
+    );
+    ros::spin();
 }
