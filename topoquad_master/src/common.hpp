@@ -8,10 +8,10 @@ class Joint {
     public:
         Joint(int id): 
             servo_angle_(0.0), joint_angle_(0.0), gear_ratio_(1.0), 
-            servo_current_(0.0), joint_torque_(0.0), torque_ratio_(1.0), 
+            servo_current_(0.0), joint_torque_(0.0), torque_ratio_(1.0), servo_velocity_(0.0),
             id_(id), fixed_coord_(Vector3d(0.0, 0.0, 0.0)) {}
         Joint(int id, double gear_ratio, double joint_angle, double torque_ratio, double joint_torque):
-            joint_angle_(joint_angle), servo_angle_(joint_angle*gear_ratio), 
+            joint_angle_(joint_angle), servo_angle_(joint_angle*gear_ratio), servo_velocity_(0.0),
             gear_ratio_(gear_ratio),
             joint_torque_(joint_torque), servo_current_(joint_torque/gear_ratio/torque_ratio), 
             torque_ratio_(torque_ratio),
@@ -35,6 +35,8 @@ class Joint {
             servo_current_ = current;
             joint_torque_ = current * torque_ratio_ * gear_ratio_;
         }
+
+        double servo_velocity_; //[rad/s] 
 
         double servo_angle_; //[rad] 
         double joint_angle_; //[rad] // サーボと関節の角度,ギア比分だけ異なる

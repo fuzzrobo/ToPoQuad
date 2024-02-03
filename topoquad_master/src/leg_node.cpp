@@ -103,6 +103,7 @@ class Leg {
         }
         
         bool is_updated_; // 関節角が更新されたかどうか
+        ros::Time updated_time_; // 関節角が更新された時間
         Joint hip_yaw_;
         Joint hip_pitch_;
         Joint knee_pitch_;
@@ -149,23 +150,58 @@ Point leg_k( const vector<double>& angles, const Pose2D& fp, const int& sign){
 }
 
 void BroadcastDynamixelCommand(){
-    static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)};
-    static vector<std::reference_wrapper<Leg>> goals =   {ref(goal_leg_FR  ), ref(goal_leg_FL  ), ref(goal_leg_BR  ), ref(goal_leg_BL  )};
+    static vector<std::reference_wrapper<Leg>> targets  = {ref(target_leg_FR ), ref(target_leg_FL ), ref(target_leg_BR ), ref(target_leg_BL )};
+    static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_FR), ref(present_leg_FL), ref(present_leg_BR), ref(present_leg_BL)};
+    static double dt = 0.01;
+    static ros::Time prev = ros::Time::now();
+    ros::Time now = ros::Time::now();
+    dt = 0.8*dt + 0.2*(now.toSec() - prev.toSec()); prev = now; // ほぼ定数になるはずの値なので，平滑化して扱う．
+    
     dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_msg;
     bool is_diff = false;
+    static double ang_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
+    static double ang_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+    static double ang_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
     for ( int i=0; i<4; i++) {
         auto& tleg = targets[i];
-        auto& gleg = goals[i];
+        auto& pleg = presents[i];
         if( !tleg.get().is_updated_ ) continue; //更新されたときだけpublishする
+        auto Dt = (now.toSec() - pleg.get().updated_time_.toSec()); 
+
+        auto ang_hy = tleg.get().hip_yaw_.servo_angle_    ;
+        auto ang_hp = tleg.get().hip_pitch_.servo_angle_  ;
+        auto ang_kp = tleg.get().knee_pitch_.servo_angle_ ;
+        auto vel_hy_1 = (ang_hy - ang_hy_pre[i])/dt;
+        auto vel_hp_1 = (ang_hp - ang_hp_pre[i])/dt;
+        auto vel_kp_1 = (ang_kp - ang_kp_pre[i])/dt;
+        auto vel_hy_2 = (ang_hy - (pleg.get().hip_yaw_.servo_angle_   +Dt*pleg.get().hip_yaw_.servo_velocity_   ))/dt;
+        auto vel_hp_2 = (ang_hp - (pleg.get().hip_pitch_.servo_angle_ +Dt*pleg.get().hip_pitch_.servo_velocity_ ))/dt;
+        auto vel_kp_2 = (ang_kp - (pleg.get().knee_pitch_.servo_angle_+Dt*pleg.get().knee_pitch_.servo_velocity_))/dt;
+        auto vel_hy = 0.975*vel_hy_1+0.025*vel_hy_2;
+        auto vel_hp = 0.975*vel_hp_1+0.025*vel_hp_2;
+        auto vel_kp = 0.975*vel_kp_1+0.025*vel_kp_2;
+        // if (tleg.get().knee_pitch_.id_==2) ROS_ERROR("vel: %0.2f, vel_1: %0.2f, vel_2: %0.2f, Dt: %f| p %0.4f  p~ %0.4f pe %0.4f v %0.4f", vel_kp*rad2deg, vel_kp_1*rad2deg, vel_kp_2*rad2deg, Dt, ang_kp*rad2deg,  (pleg.get().knee_pitch_.servo_angle_+Dt*pleg.get().knee_pitch_.servo_velocity_)*rad2deg , pleg.get().knee_pitch_.servo_angle_*rad2deg, pleg.get().knee_pitch_.servo_velocity_*rad2deg);
+    
         dyn_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
         dyn_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
         dyn_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
-        dyn_msg.position__deg.push_back(tleg.get().hip_yaw_.servo_angle_*rad2deg);
-        dyn_msg.position__deg.push_back(tleg.get().hip_pitch_.servo_angle_*rad2deg);
-        dyn_msg.position__deg.push_back(tleg.get().knee_pitch_.servo_angle_*rad2deg);
+        dyn_msg.position__deg.push_back( (ang_hy + 1.0*vel_hy_1*dt)*rad2deg); // 真の目標値より少し先を目標値にすることで，位置制御特融の加減速の連続を抑制したい．が，効いているのかよくわからん．
+        dyn_msg.position__deg.push_back( (ang_hp + 1.0*vel_hy_1*dt)*rad2deg);
+        dyn_msg.position__deg.push_back( (ang_kp + 1.0*vel_hy_1*dt)*rad2deg);
         dyn_msg.current__mA.push_back(tleg.get().hip_yaw_.servo_current_);
         dyn_msg.current__mA.push_back(tleg.get().hip_pitch_.servo_current_);
         dyn_msg.current__mA.push_back(tleg.get().knee_pitch_.servo_current_);
+        dyn_msg.profile_vel__deg_s.push_back( fabs(vel_hy*rad2deg) );
+        dyn_msg.profile_vel__deg_s.push_back( fabs(vel_hp*rad2deg) );
+        dyn_msg.profile_vel__deg_s.push_back( fabs(vel_kp*rad2deg) );
+        dyn_msg.profile_acc__deg_ss.push_back( 1000+25.0*fabs(pleg.get().hip_yaw_.servo_velocity_   -vel_hy)*rad2deg/dt); // todo fabsの中身負号逆じゃない...？
+        dyn_msg.profile_acc__deg_ss.push_back( 1000+25.0*fabs(pleg.get().hip_pitch_.servo_velocity_ -vel_hp)*rad2deg/dt); // todo fabsの中身負号逆じゃない...？
+        dyn_msg.profile_acc__deg_ss.push_back( 1000+25.0*fabs(pleg.get().knee_pitch_.servo_velocity_-vel_kp)*rad2deg/dt); // todo fabsの中身負号逆じゃない...？
+
+        ang_hy_pre[i] = ang_hy;
+        ang_hp_pre[i] = ang_hp;
+        ang_kp_pre[i] = ang_kp;
+
         tleg.get().is_updated_ = false;
     }
     if (dyn_msg.id_list.size() != 0) pub_dyn_cmd.publish(dyn_msg);
@@ -234,14 +270,18 @@ void BroadcastLegState(std::string flag){
 void CallBackOfDynamixelState(const dynamixel_handler::DynamixelState::ConstPtr& msg) {
     for ( auto& leg : {ref(present_leg_FR), ref(present_leg_FL), ref(present_leg_BR), ref(present_leg_BL)}) {
         for (int i=0; i<msg->id_list.size(); i++) {
+            if(msg->id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.servo_velocity_ = msg->velocity__deg_s[i]*deg2rad;
             if(msg->id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoAngle(msg->position__deg[i]*deg2rad);
             if(msg->id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoCurrent(msg->current__mA[i]);
+            if(msg->id_list[i] == leg.get().hip_pitch_.id_) leg.get().hip_pitch_.servo_velocity_ = msg->velocity__deg_s[i]*deg2rad;
             if(msg->id_list[i] == leg.get().hip_pitch_.id_) leg.get().hip_pitch_.SetServoAngle(msg->position__deg[i]*deg2rad);
             if(msg->id_list[i] == leg.get().hip_pitch_.id_) leg.get().hip_pitch_.SetServoCurrent(msg->current__mA[i]);
+            if(msg->id_list[i] == leg.get().knee_pitch_.id_) leg.get().knee_pitch_.servo_velocity_ = msg->velocity__deg_s[i]*deg2rad;
             if(msg->id_list[i] == leg.get().knee_pitch_.id_) leg.get().knee_pitch_.SetServoAngle(msg->position__deg[i]*deg2rad);
             if(msg->id_list[i] == leg.get().knee_pitch_.id_) leg.get().knee_pitch_.SetServoCurrent(msg->current__mA[i]);
         }
         leg.get().is_updated_ = true;
+        leg.get().updated_time_ = msg->stamp;
     }
     BroadcastLegState("present");
 
@@ -270,18 +310,18 @@ int main(int argc, char **argv) {
     if (!nh_p.getParam("FL_leg_dynamixel_ID",   ids_FL)) ids_FL = {24,23,22};
     if (!nh_p.getParam("BL_leg_dynamixel_ID",   ids_BL)) ids_BL = {34,33,32};
 
-    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
-    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  ); 
-    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
-    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/},
-                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.35/*Nm*/}  );
+    target_leg_BR.initialize( Joint{ ids_BR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_BR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_BR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/}  );
+    target_leg_FR.initialize( Joint{ ids_FR[0], -1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_FR[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_FR[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/}  ); 
+    target_leg_FL.initialize( Joint{ ids_FL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_FL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_FL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/}  );
+    target_leg_BL.initialize( Joint{ ids_BL[0], +1.0,   0.0 /*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_BL[1], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/},
+                              Joint{ ids_BL[2], +1.0, M_PI/4/*rad*/, +0.92/800/*Nm/mA*/, 0.6/*Nm*/}  );
 
     present_leg_FR = target_leg_FR;
     present_leg_FL = target_leg_FL;
@@ -302,25 +342,12 @@ int main(int argc, char **argv) {
 
     dynamixel_handler::DynamixelCommand_X_ControlCurrentPosition dyn_config_msg;
 
-    for ( auto& leg : {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)}) {
-        dyn_config_msg.id_list.push_back(leg.get().hip_yaw_.id_);
-        dyn_config_msg.id_list.push_back(leg.get().hip_pitch_.id_);
-        dyn_config_msg.id_list.push_back(leg.get().knee_pitch_.id_);
-        dyn_config_msg.profile_vel__deg_s.push_back(500);
-        dyn_config_msg.profile_vel__deg_s.push_back(500);
-        dyn_config_msg.profile_vel__deg_s.push_back(500);
-        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
-        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
-        dyn_config_msg.profile_acc__deg_ss.push_back(1000);
-    }
-    ros::Duration(1.0).sleep();
-    pub_dyn_cmd.publish(dyn_config_msg);
-
-    ros::Rate rate(1);
-
     ros::Timer timer = nh.createTimer(
         ros::Duration(1.0), 
         [](const ros::TimerEvent&){
+            for ( auto& leg : {ref(target_leg_FR), ref(target_leg_FL), ref(target_leg_BR), ref(target_leg_BL)}) {
+                leg.get().is_updated_ = true;
+            }
             BroadcastDynamixelCommand();
             BroadcastLegState("present");
             BroadcastLegState("goal");
@@ -328,3 +355,4 @@ int main(int argc, char **argv) {
     );
     ros::spin();
 }
+
