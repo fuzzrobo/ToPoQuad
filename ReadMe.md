@@ -1,15 +1,17 @@
 # ToPoQuad
 
+> [!IMPORTANT]
+> dynamixel_handler pkg は独立させたので，別途`$ git clone`が必要です．
+> [こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros1/tree/main)
+
 ## 現状実装されている機能
- - Dynamixelの自動検出 [dynamixel_handler/dynamixel_handler_node]
- - Dynamixelとの通信 [dynamixel_handler/dynamixel_handler_node]
- - Dynamixelのエラーの検出とノードの再起動によるエラークリア [dynamixel_handler/dynamixel_handler_node]
  - 脚への角度指令をDynamixelへの角度指令への変換 [topoquad_master/leg_node]
  - 足先の位置をDynamixelへの角度指令へ変換 [topoquad_master/leg_node]
     - 足先位置はBody座標系から見たもの．
     - 単純な3LinkのIKを解いている．
  - 首への角度指令をDynamixelへの角度指令へ変換 [topoquad_master/neck_node]
  - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
+ - IKを使った4脚歩容のサンプル [topoquad_control/leg_sample_walk.py]
  - 首のパンチルト機構による物体のトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
     - realsenseの画像から特定の色の位置を検出
     - 画角の中心に物体が来るようにパンチルト角を制御
