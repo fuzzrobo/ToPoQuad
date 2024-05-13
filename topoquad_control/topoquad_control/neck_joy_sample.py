@@ -26,7 +26,7 @@ class NeckJoyNode(Node):
     def joy_cb(self, msg):
         neck_cmd = QuadRobotCmdNeckAngle()
         neck_cmd.angle_pan = msg.axes[3] * self.angle_pan_limit
-        neck_cmd.angle_pan = -msg.axes[4] * self.angle_pan_limit
+        neck_cmd.angle_tilt = msg.axes[4] * self.angle_tilt_limit
         self.neck_cmd_pub_.publish(neck_cmd)
 
 def main(args=None):
