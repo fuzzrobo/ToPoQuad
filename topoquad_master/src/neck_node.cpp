@@ -1,7 +1,7 @@
 #include <topoquad_master/neck_node.hpp>
 
 class NeckNode : public rclcpp::Node {
-    rclcpp::Publisher<dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition>::SharedPtr dyn_cmd_pub_;
+    rclcpp::Publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>::SharedPtr dyn_cmd_pub_;
     rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateNeck>::SharedPtr neck_state_p_pub_, neck_state_g_pub_;
 
     rclcpp::Subscription<dynamixel_handler::msg::DynamixelState>::SharedPtr dyn_state_sub_;
@@ -25,7 +25,7 @@ class NeckNode : public rclcpp::Node {
         present_neck_ = target_neck_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>("/dynamixel/cmd/x/position", 10);
         neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("/neck/state/present", 10);
         neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("/neck/state/goal", 10);
 
@@ -42,11 +42,13 @@ class NeckNode : public rclcpp::Node {
    private:
     void timer_cb() {
         if (target_neck_.is_updated_ || target_neck_ != goal_neck_) {
-            dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition dyn_msg;
+            dynamixel_handler::msg::DynamixelCommandXControlPosition dyn_msg;
             dyn_msg.id_list.push_back(target_neck_.pan_.id_);
             dyn_msg.id_list.push_back(target_neck_.tilt_.id_);
             dyn_msg.position_deg.push_back(target_neck_.pan_.servo_angle_ * rad2deg);
             dyn_msg.position_deg.push_back(target_neck_.tilt_.servo_angle_ * rad2deg);
+            dyn_msg.profile_vel_deg_s.push_back(0);
+            dyn_msg.profile_vel_deg_s.push_back(0);
             dyn_cmd_pub_->publish(dyn_msg);
             target_neck_.is_updated_ = false;
         }

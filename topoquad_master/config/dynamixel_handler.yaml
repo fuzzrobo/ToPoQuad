@@ -1,0 +1,45 @@
+ns2:
+  dxl_handler:
+    ros__parameters:
+    # 通信の設定
+      device_name: "/dev/ttyACM0"
+      baudrate: 1000000
+      latency_timer: 16
+      dyn_comm/retry_num: 10
+      dyn_comm/inerval_msec: 5
+      dyn_comm/varbose: false
+    # サーボの初期設定
+      init/auto_search_max_id: 43
+      init/expected_servo_num: 0
+      init/hardware_error_auto_clean: true
+      init/torque_auto_enable: true
+      term/torque_auto_disable: true
+    # ループの設定
+      loop_rate: 100
+      ratio/state_read: 2
+      ratio/option_read: 1000
+      ratio/error_read: 200
+      ratio/varbose_loop: 100
+    # Read/Write方式
+      use/fast_read: false
+      use/split_read: false
+      use/split_write: true
+    # Readする情報
+      read/present_pwm: false
+      read/present_current: true
+      read/present_velocity: true
+      read/present_position: true
+      read/velocity_trajectory: false
+      read/position_trajectory: false
+      read/present_input_voltage: false
+      read/present_temperature: false
+    # デバッグ用
+      max_log_width: 6
+      varbose/callback: false
+      varbose/write_commad: false
+      varbose/write_option: false
+      varbose/read_state/raw: false
+      varbose/read_state/err: false
+      varbose/read_option/raw: false
+      varbose/read_option/err: false
+      varbose/read_hardware_error: true
