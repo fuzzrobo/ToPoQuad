@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-             'neck_joy = topoquad_control.neck_joy_sample:main',
+             'teleop_node = topoquad_control.teleop_sample:main',
         ],
     },
 )

@@ -127,7 +127,7 @@ class Leg {
     }
 
     bool is_updated_;            // 関節角が更新されたかどうか
-    rclcpp::Time updated_time_;  // 関節角が更新された時間
+    double updated_time_;  // 関節角が更新された時間
     Joint hip_yaw_;
     Joint hip_pitch_;
     Joint knee_pitch_;

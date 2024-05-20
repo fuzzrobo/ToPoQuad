@@ -19,7 +19,21 @@ def generate_launch_description():
         emulate_tty=True,
         parameters=[dynamixel_handler_config]
     )
+    
+    leg_node = Node(
+        package='topoquad_master',
+        executable='leg_node',
+        output='screen',
+    )
+    
+    neck_node = Node(
+        package='topoquad_master',
+        executable='neck_node',
+        output='screen',
+    )
 
     return LaunchDescription([
         dynamixel_handler_node,
+        leg_node,
+        neck_node
     ])

@@ -68,20 +68,9 @@ class LegNode : public rclcpp::Node {
             "/legs/angle", 10, std::bind(&LegNode::leg_angle_cb, this, _1));
         dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DynamixelState>(
             "/dynamixel/state", 10, std::bind(&LegNode::dyn_state_cb, this, _1));
-
-        // Timer
-        timer_ = this->create_wall_timer(1000ms, std::bind(&LegNode::timer_cb, this));
     }
 
    private:
-    void timer_cb() {
-        for (auto& leg : {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)}) {
-            leg.get().is_updated_ = true;
-        }
-        BroadcastDynamixelCommand();
-        BroadcastLegState("present");
-        BroadcastLegState("goal");
-    }
     void leg_point_cb(const topoquad_msgs::msg::QuadRobotCmdLegPoint::SharedPtr msg) {
         auto angle_fr = leg_ik(msg->leg_fr, target_leg_fr_.fixed_pose_, 1);
         if (!isnan(angle_fr[0]) && !isnan(angle_fr[1]) && !isnan(angle_fr[2])) target_leg_fr_.SetJointAngles(angle_fr);
@@ -114,7 +103,8 @@ class LegNode : public rclcpp::Node {
                 if (msg->id_list[i] == leg.get().knee_pitch_.id_) leg.get().knee_pitch_.SetServoCurrent(msg->current_ma[i]);
             }
             leg.get().is_updated_ = true;
-            leg.get().updated_time_ = msg->stamp;
+            // leg.get().updated_time_ = msg->stamp.seconds();
+            leg.get().updated_time_ = this->get_clock()->now().seconds();
         }
         BroadcastLegState("present");
 
@@ -136,9 +126,9 @@ class LegNode : public rclcpp::Node {
         static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
         static double dt = 0.01;
-        static rclcpp::Time prev = this->get_clock()->now();
-        rclcpp::Time now = this->get_clock()->now();
-        dt = 0.8 * dt + 0.2 * (now - prev).seconds();
+        static double prev = this->get_clock()->now().seconds();
+        double now = this->get_clock()->now().seconds();
+        dt = 0.8 * dt + 0.2 * (now - prev);
         prev = now;  // ほぼ定数になるはずの値なので，平滑化して扱う．
 
         dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition dyn_msg;
@@ -149,8 +139,8 @@ class LegNode : public rclcpp::Node {
         for (int i = 0; i < 4; i++) {
             auto& tleg = targets[i];
             auto& pleg = presents[i];
-            if (!tleg.get().is_updated_) continue;  // 更新されたときだけpublishする
-            auto Dt = (now - pleg.get().updated_time_).seconds();
+            // if (!tleg.get().is_updated_) continue;  // 更新されたときだけpublishする
+            auto Dt = (now - pleg.get().updated_time_);
 
             auto ang_hy = tleg.get().hip_yaw_.servo_angle_;
             auto ang_hp = tleg.get().hip_pitch_.servo_angle_;
