@@ -33,11 +33,11 @@ class TeleopNode(Node):
         self.legs = [[0.]*3, [0.]*3, [0.]*3, [0.]*3]
         
         # Publishers
-        self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, '/neck/angle', 10)
-        self.leg_point_pub_ = self.create_publisher(QuadRobotCmdLegPoint, '/legs/point', 10)
+        self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
+        self.leg_point_pub_ = self.create_publisher(QuadRobotCmdLegPoint, 'legs/point', 10)
         
         # Subscribers
-        self.joy_sub_ = self.create_subscription(Joy, '/joy', self.joy_cb, 10)
+        self.joy_sub_ = self.create_subscription(Joy, 'joy', self.joy_cb, 10)
         
         # Timer
         self.timer = self.create_timer(0.05, self.timer_cb)

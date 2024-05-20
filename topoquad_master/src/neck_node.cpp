@@ -25,15 +25,15 @@ class NeckNode : public rclcpp::Node {
         present_neck_ = target_neck_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>("/dynamixel/cmd/x/position", 10);
-        neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("/neck/state/present", 10);
-        neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("/neck/state/goal", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>("dynamixel/cmd/x/position", 10);
+        neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/present", 10);
+        neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/goal", 10);
 
         // Subscribers
         dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DynamixelState>(
-            "/dynamixel/state", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
+            "dynamixel/state", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
         neck_angle_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdNeckAngle>(
-            "/neck/angle", 10, std::bind(&NeckNode::neck_angle_cb, this, _1));
+            "neck/angle", 10, std::bind(&NeckNode::neck_angle_cb, this, _1));
 
         // Timer
         timer_ = this->create_wall_timer(5ms, std::bind(&NeckNode::timer_cb, this));

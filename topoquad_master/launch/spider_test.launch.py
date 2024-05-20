@@ -14,7 +14,7 @@ def generate_launch_description():
         package='dynamixel_handler',
         executable='dynamixel_handler_node',
         name='dxl_handler',
-        namespace='ns2',
+        namespace='ns',
         output='screen',
         emulate_tty=True,
         parameters=[dynamixel_handler_config]
@@ -23,12 +23,14 @@ def generate_launch_description():
     leg_node = Node(
         package='topoquad_master',
         executable='leg_node',
+        namespace='ns',
         output='screen',
     )
     
     neck_node = Node(
         package='topoquad_master',
         executable='neck_node',
+        namespace='ns',
         output='screen',
     )
 

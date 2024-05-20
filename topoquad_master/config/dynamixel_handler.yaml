@@ -1,4 +1,4 @@
-ns2:
+ns:
   dxl_handler:
     ros__parameters:
     # 通信の設定

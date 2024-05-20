@@ -57,17 +57,17 @@ class LegNode : public rclcpp::Node {
         goal_leg_bl_ = target_leg_bl_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition>("/dynamixel/cmd/x/current_position", 10);
-        leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("/legs/state/present", 10);
-        leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("/legs/state/goal", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlCurrentPosition>("dynamixel/cmd/x/current_position", 10);
+        leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/present", 10);
+        leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/goal", 10);
 
         // Subscribers
         leg_point_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>(
-            "/legs/point", 10, std::bind(&LegNode::leg_point_cb, this, _1));
+            "legs/point", 10, std::bind(&LegNode::leg_point_cb, this, _1));
         leg_angle_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegAngle>(
-            "/legs/angle", 10, std::bind(&LegNode::leg_angle_cb, this, _1));
+            "legs/angle", 10, std::bind(&LegNode::leg_angle_cb, this, _1));
         dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DynamixelState>(
-            "/dynamixel/state", 10, std::bind(&LegNode::dyn_state_cb, this, _1));
+            "dynamixel/state", 10, std::bind(&LegNode::dyn_state_cb, this, _1));
     }
 
    private:
