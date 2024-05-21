@@ -6,15 +6,14 @@ from sensor_msgs.msg import Joy
 from topoquad_msgs.msg import QuadRobotCmdNeckAngle, QuadRobotCmdLegPoint
 from geometry_msgs.msg import Point
 
-from math import pi, sin, cos
+from math import pi, sin, cos, sqrt
 
 # Static
-r = 0.00
-s = 0.02
-h = 0.01
-base_radius = 0.09
-base_height = 0.10
-
+r = 0.020
+s = 0.030
+h = 0.022
+base_radius = 0.085
+base_height = 0.085
 class TeleopNode(Node):
 
     def __init__(self):
@@ -28,7 +27,7 @@ class TeleopNode(Node):
         # Variable
         self.phase_p = 0.0
         self.phase_r = 0.0
-        self.phase_diff_max =  1.0 / 10
+        self.phase_diff =  1.0 / 50 
         self.joy = None
         
         # Publishers
@@ -39,7 +38,7 @@ class TeleopNode(Node):
         self.joy_sub_ = self.create_subscription(Joy, 'joy', self.joy_cb, 10)
         
         # Timer
-        self.timer = self.create_timer(0.05, self.timer_cb)
+        self.timer = self.create_timer(0.03, self.timer_cb)
     
     def joy_cb(self, msg):
         self.joy = msg
@@ -58,76 +57,103 @@ class TeleopNode(Node):
         # Neck
         pan = self.joy.axes[0] * self.angle_pan_limit
         tilt = self.joy.axes[4] * self.angle_tilt_limit
+        neck_cmd = QuadRobotCmdNeckAngle()
         if pan != 0 and tilt != 0:
             self.get_logger().info(f"pan: {pan}, tilt: {tilt}", throttle_duration_sec = 0.5)
-        neck_cmd = QuadRobotCmdNeckAngle()
-        neck_cmd.angle_pan = pan
-        neck_cmd.angle_tilt = tilt
+            neck_cmd.angle_pan = pan
+            neck_cmd.angle_tilt = tilt
         self.neck_cmd_pub_.publish(neck_cmd)
         
         # Legs
         rot = self.joy.axes[0]
         vx = -self.joy.axes[6]
         vy = self.joy.axes[7]
-        if vx != 0 or vy != 0 or rot != 0:
-            self.get_logger().info(f"vx: {vx}, vy: {vy}, rot: {rot}", throttle_duration_sec = 0.5)
         point = QuadRobotCmdLegPoint()
-        self.move_parallel(point, vx, vy)
-        self.move_rotational(point, rot)
+        if rot != 0:
+            self.get_logger().info(f"rot: {rot}", throttle_duration_sec = 0.5)
+            self.move_rotational(point, rot)
+        else:
+            self.get_logger().info(f"vx: {vx}, vy: {vy}", throttle_duration_sec = 0.5)
+            self.move_parallel(point, vx, vy)
         self.leg_point_pub_.publish(point)
     
-    def move_parallel(self, point, vx, vy): # あーリファクタしたいー
-        u = lambda theta: [1.0 * cos(theta), 1.0 * sin(theta), 0*sin(theta/2)]
+    def move_parallel(self, point, vx, vy):
+        body_motion = lambda time: [
+            0.0, # r * clamp(min(-1+8*time,+7-8*time), -1, 1) , 
+            0.0, # r * - clamp(min(+1-8*time,-5+8*time), -1, 1) , 
+            0.0 
+        ] # 重心位置
+        leg_motion = lambda time: [ # 足先の軌道, 足先ベクトルを返すthetaの関数として歩行軌道を定義        
+            vx * s*cos(2*pi*time) / (1 if vx**2 + vy**2 < 1 else sqrt(vx**2 + vy**2)), # [vx, vy]ベクトルの正規化
+            vy * s*cos(2*pi*time) / (1 if vx**2 + vy**2 < 1 else sqrt(vx**2 + vy**2)), # [vx, vy]ベクトルの正規化
+            h * min(sin(2*pi*time), 0) # 半円状の動作を作り，円弧を描く0~piの範囲を遊脚期とする
+        ]
+        a = 0.6 # 支持脚期の時間的な割有
+        time_traj = lambda phase: max(norm(phase)/(2*a), 1/2+(norm(phase)-a)/(2*(1-a)))
 
-        if vx != 0:
-            self.phase_p += vx * self.phase_diff_max
-            x, y, z  =  u( 2*pi*self.phase_p )
+        phase = norm(self.phase_p - self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
+        x0, y0, z0 = body_motion((phase))
+        x, y, z  =  leg_motion( time_traj(phase-0/4) )
+        point.leg_fl.x = -base_radius - x0 - x 
+        point.leg_fl.y = +base_radius - y0 - y 
+        point.leg_fl.z = -base_height - z0 - z 
+        x, y, z  =  leg_motion( time_traj(phase-2/4) )
+        point.leg_fr.x =  base_radius - x0 - x
+        point.leg_fr.y = +base_radius - y0 - y
+        point.leg_fr.z = -base_height - z0 - z
+        x, y, z  =  leg_motion( time_traj(phase-3/4) )
+        point.leg_bl.x = -base_radius - x0 - x
+        point.leg_bl.y = -base_radius - y0 - y
+        point.leg_bl.z = -base_height - z0 - z
+        x, y, z  =  leg_motion( time_traj(phase-1/4) )
+        point.leg_br.x = +base_radius - x0 - x
+        point.leg_br.y = -base_radius - y0 - y
+        point.leg_br.z = -base_height - z0 - z
 
-            point.leg_fl.x = -base_radius+r*x - s*cos( 2*pi*(self.phase_p-0/4) )
-            point.leg_fl.y = +base_radius+r*y
-
-            point.leg_fr.x =  base_radius+r*x - s*cos( 2*pi*(self.phase_p-2/4) )
-            point.leg_fr.y = +base_radius+r*y 
-    
-            point.leg_bl.x = -base_radius+r*x - s*cos( 2*pi*(self.phase_p-3/4) )
-            point.leg_bl.y = -base_radius+r*y
-
-            point.leg_br.x = +base_radius+r*x - s*cos( 2*pi*(self.phase_p-1/4) )
-            point.leg_br.y = -base_radius+r*y
-
-        else:
-            self.phase_p += vy * self.phase_diff_max
-            x, y, z  =  u( 2*pi*self.phase_p )
-
-            point.leg_fl.x = -base_radius+r*x
-            point.leg_fl.y = +base_radius+r*y - s*cos( 2*pi*(self.phase_p-0/4) )
-
-            point.leg_fr.x =  base_radius+r*x
-            point.leg_fr.y = +base_radius+r*y - s*cos( 2*pi*(self.phase_p-2/4) )
-    
-            point.leg_bl.x = -base_radius+r*x
-            point.leg_bl.y = -base_radius+r*y - s*cos( 2*pi*(self.phase_p-3/4) )
-
-            point.leg_br.x = +base_radius+r*x
-            point.leg_br.y = -base_radius+r*y - s*cos( 2*pi*(self.phase_p-1/4) )
-
-        point.leg_fl.z = -base_height-r*z + h*sin( 2*pi*(self.phase_p-0/4) )
-        point.leg_fr.z = -base_height-r*z + h*sin( 2*pi*(self.phase_p-2/4) )
-        point.leg_bl.z = -base_height-r*z + h*sin( 2*pi*(self.phase_p-3/4) )
-        point.leg_br.z = -base_height-r*z + h*sin( 2*pi*(self.phase_p-1/4) )
-
-        if self.phase_p > 1:
-            self.phase_p -= 1
-        elif self.phase_p < 0:
-            self.phase_p += 1
-
+        self.phase_p = phase
         return point
 
     def move_rotational(self, point, rot): 
+        body_motion = lambda time: [ 0.0, 0.0, 0.0 ] # 重心位置
+        leg_motion = lambda time: [ # 足先の軌道, 足先ベクトルを返すtimeの関数として歩行軌道を定義
+            +rot*s*cos(2*pi*time), 
+            -rot*s*cos(2*pi*time), 
+            h * min(sin(2*pi*time), 0.0) # 0~piの範囲が遊脚期
+        ]
+        a = 3/4 # 支持脚期の割有
+        time_traj = lambda phase: max(norm(phase)/(2*a), 1/2+(norm(phase)-a)/(2*(1-a)))
 
+        phase = norm(self.phase_r + self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
+        x0, y0, z0 = body_motion((phase))
+        x, y, z  =  leg_motion( time_traj(phase - 0/4*(-1 if rot>0 else 1)) )
+        point.leg_fl.x = -base_radius - x0 + x
+        point.leg_fl.y = +base_radius - y0 - y
+        point.leg_fl.z = -base_height - z0 - z
+        x, y, z  =  leg_motion( time_traj(phase - 3/4*(-1 if rot>0 else 1)) )
+        point.leg_fr.x =  base_radius - x0 + x
+        point.leg_fr.y = +base_radius - y0 + y
+        point.leg_fr.z = -base_height - z0 - z
+        x, y, z  =  leg_motion( time_traj(phase - 1/4*(-1 if rot>0 else 1)) )
+        point.leg_bl.x = -base_radius - x0 - x
+        point.leg_bl.y = -base_radius - y0 - y
+        point.leg_bl.z = -base_height - z0 - z
+        x, y, z  =  leg_motion( time_traj(phase - 2/4*(-1 if rot>0 else 1)) )
+        point.leg_br.x = +base_radius - x0 - x
+        point.leg_br.y = -base_radius - y0 + y
+        point.leg_br.z = -base_height - z0 - z
+        
+        self.phase_r = phase
         return point
 
+def norm(phase):
+    while phase > 1:
+        phase -= 1
+    while phase < 0:
+        phase += 1
+    return phase
 
+def clamp(val, min_val, max_val):
+    return min(max(val, min_val), max_val)
 
 def main(args=None):
     rclpy.init(args=args)
