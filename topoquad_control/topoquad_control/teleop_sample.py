@@ -9,11 +9,12 @@ from geometry_msgs.msg import Point
 from math import pi, sin, cos, sqrt
 
 # Static
-r = 0.020
-s = 0.030
-h = 0.022
+r = 0.00
+s = 0.02
+h = 0.01
+
 base_radius = 0.085
-base_height = 0.085
+base_height = 0.1
 class TeleopNode(Node):
 
     def __init__(self):
@@ -27,8 +28,10 @@ class TeleopNode(Node):
         # Variable
         self.phase_p = 0.0
         self.phase_r = 0.0
-        self.phase_diff =  1.0 / 50 
+        self.phase_diff =  2.0 / 50 
+        self.theta_diff =  (2 * pi) / 20
         self.joy = None
+        self.u = lambda theta: [1.0 * cos(theta), 1.0 * sin(theta), 0*sin(theta/2)]
         
         # Publishers
         self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
@@ -38,7 +41,7 @@ class TeleopNode(Node):
         self.joy_sub_ = self.create_subscription(Joy, 'joy', self.joy_cb, 10)
         
         # Timer
-        self.timer = self.create_timer(0.03, self.timer_cb)
+        self.timer = self.create_timer(0.05, self.timer_cb)
     
     def joy_cb(self, msg):
         self.joy = msg
@@ -55,17 +58,17 @@ class TeleopNode(Node):
             return
 
         # Neck
-        pan = self.joy.axes[0] * self.angle_pan_limit
+        pan = self.joy.axes[3] * self.angle_pan_limit
         tilt = self.joy.axes[4] * self.angle_tilt_limit
         neck_cmd = QuadRobotCmdNeckAngle()
-        if pan != 0 and tilt != 0:
+        if pan != 0 or tilt != 0:
             self.get_logger().info(f"pan: {pan}, tilt: {tilt}", throttle_duration_sec = 0.5)
             neck_cmd.angle_pan = pan
             neck_cmd.angle_tilt = tilt
         self.neck_cmd_pub_.publish(neck_cmd)
         
         # Legs
-        rot = self.joy.axes[0]
+        rot = -1.0 if self.joy.buttons[4] else (1.0 if self.joy.buttons[5] else 0.0)
         vx = -self.joy.axes[6]
         vy = self.joy.axes[7]
         point = QuadRobotCmdLegPoint()
@@ -74,8 +77,9 @@ class TeleopNode(Node):
             self.move_rotational(point, rot)
         else:
             self.get_logger().info(f"vx: {vx}, vy: {vy}", throttle_duration_sec = 0.5)
-            self.move_parallel(point, vx, vy)
-        self.leg_point_pub_.publish(point)
+            self.move_parallel_old(point, vx, vy)
+        if vx or vy or rot:
+            self.leg_point_pub_.publish(point)
     
     def move_parallel(self, point, vx, vy):
         body_motion = lambda time: [
@@ -111,6 +115,51 @@ class TeleopNode(Node):
         point.leg_br.z = -base_height - z0 - z
 
         self.phase_p = phase
+        return point
+    
+    def move_parallel_old(self, point, vx, vy):
+        if vx != 0:
+            if vx > 0:
+                self.phase_p += self.theta_diff
+            elif vx < 0:
+                self.phase_p -= self.theta_diff
+            x, y, z  =  self.u(self.phase_p)
+
+            point.leg_fl.x = -0.09+r*x - s*cos(self.phase_p-pi/2*0)
+            point.leg_fl.y = 0.09+r*y
+
+            point.leg_fr.x =  0.09+r*x - s*cos(self.phase_p-pi/2*2)
+            point.leg_fr.y = 0.09+r*y 
+    
+            point.leg_bl.x = -0.09+r*x - s*cos(self.phase_p-pi/2*3)
+            point.leg_bl.y = -0.09+r*y
+
+            point.leg_br.x = 0.09+r*x  - s*cos(self.phase_p-pi/2*1)
+            point.leg_br.y = -0.09+r*y
+        else:
+            if vy > 0:
+                self.phase_p += self.theta_diff
+            elif vy < 0:
+                self.phase_p -= self.theta_diff
+
+            x, y, z  =  self.u(self.phase_p)
+
+            point.leg_fl.x = -0.09+r*x
+            point.leg_fl.y = 0.09+r*y - s*cos(self.phase_p-pi/2*0)
+
+            point.leg_fr.x =  0.09+r*x
+            point.leg_fr.y = 0.09+r*y - s*cos(self.phase_p-pi/2*2)
+    
+            point.leg_bl.x = -0.09+r*x
+            point.leg_bl.y = -0.09+r*y - s*cos(self.phase_p-pi/2*3)
+
+            point.leg_br.x = 0.09+r*x
+            point.leg_br.y = -0.09+r*y - s*cos(self.phase_p-pi/2*1)
+        
+        point.leg_fl.z = -0.10-r*z + h*sin(self.phase_p-pi/2*0)
+        point.leg_fr.z = -0.10-r*z + h*sin(self.phase_p-pi/2*2)
+        point.leg_bl.z = -0.10-r*z + h*sin(self.phase_p-pi/2*3)
+        point.leg_br.z = -0.10-r*z + h*sin(self.phase_p-pi/2*1)
         return point
 
     def move_rotational(self, point, rot): 
