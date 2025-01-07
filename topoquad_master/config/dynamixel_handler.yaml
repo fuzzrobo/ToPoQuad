@@ -32,7 +32,7 @@ ns:
       read/velocity_trajectory: false
       read/position_trajectory: false
       read/present_input_voltage: false
-      read/present_temperature: false
+      read/present_temperature: true
     # デバッグ用
       max_log_width: 6
       varbose/callback: false
