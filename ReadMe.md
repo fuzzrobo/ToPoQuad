@@ -47,7 +47,7 @@ $ roscore
 ```
 
 #### 2 Dynamixelとの通信を司るノード
-[こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros1/tree/main)
+[こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros2/tree/opencr_imu)
 
 #### 3-1 脚への制御指令を受け付けるノード
 ```
