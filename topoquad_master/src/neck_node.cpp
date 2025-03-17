@@ -1,10 +1,10 @@
 #include <topoquad_master/neck_node.hpp>
 
 class NeckNode : public rclcpp::Node {
-    rclcpp::Publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>::SharedPtr dyn_cmd_pub_;
+    rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
     rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateNeck>::SharedPtr neck_state_p_pub_, neck_state_g_pub_;
 
-    rclcpp::Subscription<dynamixel_handler::msg::DynamixelState>::SharedPtr dyn_state_sub_;
+    rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdNeckAngle>::SharedPtr neck_angle_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -25,13 +25,13 @@ class NeckNode : public rclcpp::Node {
         present_neck_ = target_neck_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DynamixelCommandXControlPosition>("dynamixel/cmd/x/position", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
         neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/present", 10);
         neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/goal", 10);
 
         // Subscribers
-        dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DynamixelState>(
-            "dynamixel/state", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
+        dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DxlStates>(
+            "dynamixel/states", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
         neck_angle_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdNeckAngle>(
             "neck/angle", 10, std::bind(&NeckNode::neck_angle_cb, this, _1));
 
@@ -42,13 +42,14 @@ class NeckNode : public rclcpp::Node {
    private:
     void timer_cb() {
         if (target_neck_.is_updated_ || target_neck_ != goal_neck_) {
-            dynamixel_handler::msg::DynamixelCommandXControlPosition dyn_msg;
-            dyn_msg.id_list.push_back(target_neck_.pan_.id_);
-            dyn_msg.id_list.push_back(target_neck_.tilt_.id_);
-            dyn_msg.position_deg.push_back(target_neck_.pan_.servo_angle_ * rad2deg);
-            dyn_msg.position_deg.push_back(target_neck_.tilt_.servo_angle_ * rad2deg);
-            dyn_msg.profile_vel_deg_s.push_back(0);
-            dyn_msg.profile_vel_deg_s.push_back(0);
+            dynamixel_handler::msg::DxlCommandsX dyn_msg;
+            auto& ctrl_msg = dyn_msg.current_base_position_control;
+            ctrl_msg.id_list.push_back(target_neck_.pan_.id_);
+            ctrl_msg.id_list.push_back(target_neck_.tilt_.id_);
+            ctrl_msg.position_deg.push_back(target_neck_.pan_.servo_angle_ * rad2deg);
+            ctrl_msg.position_deg.push_back(target_neck_.tilt_.servo_angle_ * rad2deg);
+            ctrl_msg.profile_vel_deg_s.push_back(0);
+            ctrl_msg.profile_vel_deg_s.push_back(0);
             dyn_cmd_pub_->publish(dyn_msg);
             target_neck_.is_updated_ = false;
         }
@@ -69,13 +70,15 @@ class NeckNode : public rclcpp::Node {
             goal_neck_.is_updated_ = false;
         }
     }
-    void dyn_state_cb(const dynamixel_handler::msg::DynamixelState::SharedPtr msg) {
-        for (int i = 0; i < msg->id_list.size(); i++) {
-            if (msg->id_list[i] == present_neck_.pan_.id_) present_neck_.pan_.SetServoAngle(msg->position_deg[i] * deg2rad);
-            if (msg->id_list[i] == present_neck_.tilt_.id_) present_neck_.tilt_.SetServoAngle(msg->position_deg[i] * deg2rad);
+    void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
+        for (size_t i = 0; i < msg->present.id_list.size(); i++) {
+            if (msg->present.id_list[i] == present_neck_.pan_.id_) present_neck_.pan_.SetServoAngle(msg->present.position_deg[i] * deg2rad);
+            if (msg->present.id_list[i] == present_neck_.tilt_.id_) present_neck_.tilt_.SetServoAngle(msg->present.position_deg[i] * deg2rad);
             present_neck_.is_updated_ = true;
-            if (msg->id_list[i] == goal_neck_.pan_.id_) goal_neck_.pan_.SetServoAngle(msg->position_deg[i] * rad2deg);
-            if (msg->id_list[i] == goal_neck_.tilt_.id_) goal_neck_.tilt_.SetServoAngle(msg->position_deg[i] * rad2deg);
+        }
+        for (size_t i = 0; i < msg->goal.id_list.size(); i++) {
+            if (msg->goal.id_list[i] == goal_neck_.pan_.id_) goal_neck_.pan_.SetServoAngle(msg->goal.position_deg[i] * rad2deg);
+            if (msg->goal.id_list[i] == goal_neck_.tilt_.id_) goal_neck_.tilt_.SetServoAngle(msg->goal.position_deg[i] * rad2deg);
             goal_neck_.is_updated_ = true;
         }
     }

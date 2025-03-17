@@ -3,8 +3,8 @@
 
 #include <topoquad_master/common.hpp>
 
-#include "dynamixel_handler/msg/dynamixel_command_x_control_current_position.hpp"
-#include "dynamixel_handler/msg/dynamixel_state.hpp"
+#include "dynamixel_handler/msg/dxl_commands_x.hpp"
+#include "dynamixel_handler/msg/dxl_states.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "rclcpp/rclcpp.hpp"

@@ -3,8 +3,8 @@
 
 #include <topoquad_master/common.hpp>
 
-#include "dynamixel_handler/msg/dynamixel_command_x_control_position.hpp"
-#include "dynamixel_handler/msg/dynamixel_state.hpp"
+#include "dynamixel_handler/msg/dxl_commands_x.hpp"
+#include "dynamixel_handler/msg/dxl_states.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "topoquad_msgs/msg/quad_robot_cmd_neck_angle.hpp"
 #include "topoquad_msgs/msg/quad_robot_state_neck.hpp"
