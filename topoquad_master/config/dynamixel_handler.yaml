@@ -6,7 +6,7 @@ ns:
         no_use_command_line: false # true: プログラム用のトピックのみ使用する/ false: コマンドライン用のトピックも出力する
         # dummy_servo_id_list: [] # ダミーのサーボを作成する,同じIDのサーボが存在する場合でもダミーが優先される． 
     # 通信機器の設定
-        device_name: /dev/ttyUSB0 # 通信するデバイス名
+        device_name: /dev/ttyACM0 # 通信するデバイス名
         baudrate: 1000000 # 通信速度
         latency_timer: 1 # 通信のインターバル
     # 通信の設定
