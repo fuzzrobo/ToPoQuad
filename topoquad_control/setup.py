@@ -21,6 +21,8 @@ setup(
     entry_points={
         'console_scripts': [
              'teleop_node = topoquad_control.teleop_sample:main',
+             'keyboard_node = topoquad_control.keyboard_sample:main',
+             'walk_node = topoquad_control.walk_sample:main',
         ],
     },
 )
