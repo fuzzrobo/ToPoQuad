@@ -168,12 +168,12 @@ class LegNode : public rclcpp::Node {
             ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
             ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
             ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
-            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hy * rad2deg));
-            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hp * rad2deg));
-            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_kp * rad2deg));
-            ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().hip_yaw_.servo_velocity_ - vel_hy) * rad2deg / dt);     // todo fabsの中身負号逆じゃない...？
-            ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().hip_pitch_.servo_velocity_ - vel_hp) * rad2deg / dt);   // todo fabsの中身負号逆じゃない...？
-            ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().knee_pitch_.servo_velocity_ - vel_kp) * rad2deg / dt);  // todo fabsの中身負号逆じゃない...？
+            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hy * rad2deg));
+            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hp * rad2deg));
+            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_kp * rad2deg));
+            // ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().hip_yaw_.servo_velocity_ - vel_hy) * rad2deg / dt);     // todo fabsの中身負号逆じゃない...？
+            // ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().hip_pitch_.servo_velocity_ - vel_hp) * rad2deg / dt);   // todo fabsの中身負号逆じゃない...？
+            // ctrl_msg.profile_acc_deg_ss.push_back(1000 + 25.0 * fabs(pleg.get().knee_pitch_.servo_velocity_ - vel_kp) * rad2deg / dt);  // todo fabsの中身負号逆じゃない...？
 
             ang_hy_pre[i] = ang_hy;
             ang_hp_pre[i] = ang_hp;

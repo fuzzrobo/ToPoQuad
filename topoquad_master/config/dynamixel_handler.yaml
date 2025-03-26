@@ -6,7 +6,7 @@ ns:
         no_use_command_line: false # true: プログラム用のトピックのみ使用する/ false: コマンドライン用のトピックも出力する
         # dummy_servo_id_list: [] # ダミーのサーボを作成する,同じIDのサーボが存在する場合でもダミーが優先される． 
     # 通信機器の設定
-        device_name: /dev/ttyACM0 # 通信するデバイス名
+        device_name: /dev/ttyUSB0 # 通信するデバイス名
         baudrate: 1000000 # 通信速度
         latency_timer: 1 # 通信のインターバル
     # 通信の設定
@@ -23,8 +23,8 @@ ns:
         init/torque_auto_enable: true # 初期化時に Torque を自動でONにするかどうか
         term/torque_auto_disable: true # 終了時に Torque を自動でOFFにするかどうか
     # デフォルト値の設定
-        default/profile_acc: 600.0 # deg/s^2
-        default/profile_vel: 200.0 # deg/s
+        default/profile_acc: 5000.0 # deg/s^2
+        default/profile_vel: 600.0 # deg/s
     # ループの設定
         loop_rate: 100 # メインループの周期
         verbose_ratio: 300 # メインループのlog出力の割合(処理時間，通信の成功率), ex 100なら100回に1回出力
