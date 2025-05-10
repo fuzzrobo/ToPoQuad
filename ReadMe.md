@@ -36,6 +36,12 @@ git clone --recursive https://github.com/ROBOTIS-JAPAN-GIT/ToPoQuad.git -b humbl
 cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash
 ```
 
+#### 1.4 その他のROS 2パッケージのインストール
+```bash
+sudo apt install ros-humble-plotjuggler
+sudo apt install ros-humble-teleop-twist-keyboard 
+```
+
 ### 2. リモートPCの環境設定
 
 #### 2.1. リモートPCのセットアップについて
@@ -94,69 +100,43 @@ cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash
     ```
     </details>
 
+
 ## 3. 実機での動かし方
 
-### まとめてroslaunch
+### 3.1. セットアップ
+RasPiにssh接続して以下のコマンドを実行
+```bash
+ros2 launch topoquad_master spider_test.launch.py # ファイル名は要修正
+```
 
+### 3.2. 自律でサンプル歩容を試す
+RasPiにssh接続して以下のコマンドを実行
+```bash
+ros2 run topoquad_control walk_node --ros-args --remap __ns:=/ns # launch ファイルにまとめたい
 ```
-$ roslaunch topoquad_control tracking_target_color_with_sample_walk.launch
-```
-下記の構成でnodeをまとめて起動する．
 
+### 3.3. テレオペで動かす
+
+ - キーボードで動かす場合
+リモートPCで以下のコマンドをそれぞれ別のターミナルで実行
+```bash
+ros2 run topoquad_control keyboard_node --ros-args --remap __ns:=/ns
 ```
-{topoquad_control}/tracking_target_color_with_sample_walk.launch
-   ┣ leg_sample_control.py
-   ┣ neck_tracking_target.py
-   ┣ detect_target_color.py
-   ┗ {topoquad_master}/launch/spider_test.launch
-        ┣ leg_node
-        ┣ neck_node
-        ┗ {dynamixel_handler}/launch/dynamixel_handler.launch
-             ┗ dynamixel_handler_node
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap __ns:=/ns
 ```
-デフォルトだと"Dynamixelとの通信を司るノード"のusb deviceの値が`DEVICE=/dev/ttyUSB0`になっているので，適当に変更すること．
-`dynamixel_handler.launch`を複製して，`DEVICE`をラズパイ用に変更した`dynamixel_raspi.launch`を作成するとよいかと思われる．
+２つ目のターミナルにカーソルを合わせた状態で適切なキーを押せばロボットが動く
+
+### 3.4. ロボットの歩容を確認する
+リモートPCで以下のコマンドを実行
+```bash
+ros2 run plotjuggler plotjuggler -l ~/ros2_ws/src/ToPoQuad/topoquad.xml
+```
+出てくるウィンドウでyesを選択。
+Select ROS message というwindowでは /ns/legs/point, /ns/legs/state/goal, /ns/legs/state/present, の3つを選択してOK.
 
 
-#### 4-1 脚への制御指令を出力するノード
-```
-$ rosrun topoquad_control leg_sample_control.py
-```
-ロボットの制御を行うためのノード．
-脚の関節角の指令をpubし続ける．
-サンプルなので歩容は適当．
-
-#### 4-2 首への制御指令を出力するノード
-```
-$ rosrun topoquad_control neck_tracking_target.py
-```
-ロボットの制御を行うためのノード．
-首の関節角の指令をpubし続ける．
-下記nodeからpubされる`/target_position/ratio`トピックの値を`(0,0)`にするように首(pantilt機構に取り付けられたカメラ)を動かす．
-制御は適当なpid制御．
-
-```
-$ rosrun topoquad_control detect_target_color.py
-```
-カメラ画像`/camera/color/image_raw`から適当な色(デフォルトは赤)を検出して，その位置の画角に対する割合を`/target_position/ratio`トピックとしてpubする．
-
-## 便利なエイリアスの設定
-
-#### 特定の姿勢をワンコマンドで指令できるようにする．
-```
-alias pose1="rostopic pub /spider/cmd/leg_angle topoquad_master/QuadRobotCmdLegAngle \
-\"
-angles_FR: [0, 1.0, 0.52]
-angles_FL: [0, 1.0, 0.52]
-angles_BR: [0, 1.0, 0.52]
-angles_BL: [0, 1.0, 0.52]
-\" -1" 
-```
-これを./bashrcなりに書いておく．
-```
-$ pose1
-```
-とすれば，指定した姿勢になるようにros topicがpubされる．
 
 
 ## dynamixel id map
