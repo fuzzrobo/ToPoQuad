@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <map>
 
 using Eigen::Vector3d;
 

@@ -59,7 +59,7 @@ Point leg_k(const vector<double>& angles, const Pose2D& fp, const int& sign) {
     double l = LENGTH_HIP_PITCH * cos(angles[1]) + LENGTH_KNEE_PITCH * cos(angles[1] + angles[2]);
     k.x = fp.x + (LENGTH_HIP_YAW + l) * cos(fp.theta + sign * angles[0]);
     k.y = fp.y + (LENGTH_HIP_YAW + l) * sin(fp.theta + sign * angles[0]);
-    k.z = LENGTH_HIP_PITCH * sin(angles[1]) + LENGTH_KNEE_PITCH * sin(angles[1] + angles[2]);
+    k.z = -(LENGTH_HIP_PITCH * sin(angles[1]) + LENGTH_KNEE_PITCH * sin(angles[1] + angles[2]));
     return k;
 }
 
