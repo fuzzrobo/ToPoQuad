@@ -96,12 +96,30 @@ class LegNode : public rclcpp::Node {
         if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
         dynamixel_handler::msg::DxlCommandsX dyn_msg;
         for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
-            dyn_msg.velocity_control.id_list.push_back( leg.get().hip_yaw_.id_);  
-            dyn_msg.velocity_control.id_list.push_back( leg.get().hip_pitch_.id_);
-            dyn_msg.velocity_control.id_list.push_back( leg.get().knee_pitch_.id_);
-            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
-            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
-            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+            if (true){
+                dyn_msg.current_base_position_control.id_list.push_back( leg.get().hip_yaw_.id_);  
+                dyn_msg.current_base_position_control.id_list.push_back( leg.get().hip_pitch_.id_);
+                dyn_msg.current_base_position_control.id_list.push_back( leg.get().knee_pitch_.id_);
+                dyn_msg.current_base_position_control.position_deg.push_back(  0.0 );  
+                dyn_msg.current_base_position_control.position_deg.push_back( 45.0 );
+                dyn_msg.current_base_position_control.position_deg.push_back( 45.0 );
+                dyn_msg.current_base_position_control.profile_vel_deg_s.push_back( 50.0 );
+                dyn_msg.current_base_position_control.profile_vel_deg_s.push_back( 50.0 );
+                dyn_msg.current_base_position_control.profile_vel_deg_s.push_back( 50.0 );
+            }else{
+                dyn_msg.velocity_control.id_list.push_back( leg.get().hip_yaw_.id_);  
+                dyn_msg.velocity_control.id_list.push_back( leg.get().hip_pitch_.id_);
+                dyn_msg.velocity_control.id_list.push_back( leg.get().knee_pitch_.id_);
+                dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+                dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+                dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+            }
+            dyn_msg.status.id_list.push_back( leg.get().hip_yaw_.id_);  
+            dyn_msg.status.id_list.push_back( leg.get().hip_pitch_.id_);
+            dyn_msg.status.id_list.push_back( leg.get().knee_pitch_.id_);
+            dyn_msg.status.error.push_back( false );  
+            dyn_msg.status.error.push_back( false );
+            dyn_msg.status.error.push_back( false );
         }
         dyn_cmd_pub_->publish(dyn_msg);
     }
