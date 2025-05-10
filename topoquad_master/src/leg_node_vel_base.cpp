@@ -12,6 +12,7 @@ class LegNode : public rclcpp::Node {
     rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Time prev_cmd_time_;
 
     Leg target_leg_fr_, goal_leg_fr_, present_leg_fr_;
     Leg target_leg_fl_, goal_leg_fl_, present_leg_fl_;
@@ -91,6 +92,18 @@ class LegNode : public rclcpp::Node {
     private:
     
     void main_loop(){
+        auto now = this->get_clock()->now();
+        if (now.seconds() - prev_cmd_time_.seconds() < 0.5) return;
+        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
+            dyn_msg.velocity_control.id_list.push_back( leg.get().hip_yaw_.id_);  
+            dyn_msg.velocity_control.id_list.push_back( leg.get().hip_pitch_.id_);
+            dyn_msg.velocity_control.id_list.push_back( leg.get().knee_pitch_.id_);
+            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+            dyn_msg.velocity_control.velocity_deg_s.push_back(0.0);
+        }
+        dyn_cmd_pub_->publish(dyn_msg);
     }
 
     void leg_point_cb(const topoquad_msgs::msg::QuadRobotCmdLegPoint::SharedPtr msg) {
@@ -114,7 +127,7 @@ class LegNode : public rclcpp::Node {
     void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
         for (auto& leg : {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)}) {
             if (auto& p=msg->present; !p.id_list.empty()) 
-                for (int i = 0; i < p.id_list.size(); i++) {
+                for (size_t i = 0; i < p.id_list.size(); i++) {
                     if (p.id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.servo_velocity_ = p.velocity_deg_s[i] * deg2rad;
                     if (p.id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoAngle(p.position_deg[i] * deg2rad);
                     if (p.id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoCurrent(p.current_ma[i]);
@@ -133,7 +146,7 @@ class LegNode : public rclcpp::Node {
 
         for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
             if (auto& g=msg->goal; !g.id_list.empty()) 
-                for (int i = 0; i < g.id_list.size(); i++) {
+                for (size_t i = 0; i < g.id_list.size(); i++) {
                     if (g.id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoAngle(g.position_deg[i] * deg2rad);
                     if (g.id_list[i] == leg.get().hip_yaw_.id_) leg.get().hip_yaw_.SetServoCurrent(g.current_ma[i]);
                     if (g.id_list[i] == leg.get().hip_pitch_.id_) leg.get().hip_pitch_.SetServoAngle(g.position_deg[i] * deg2rad);
@@ -163,23 +176,18 @@ class LegNode : public rclcpp::Node {
     void BroadcastDynamixelCommand() {
         static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
-        static double dt = 0.01;
-        static double prev = this->get_clock()->now().seconds();
-        double now = this->get_clock()->now().seconds();
-        dt = 0.8 * dt + 0.2 * (now - prev);
-        prev = now;  // ほぼ定数になるはずの値なので，平滑化して扱う．
+        auto now = this->get_clock()->now();
 
         dynamixel_handler::msg::DxlCommandsX dyn_msg;
         auto& ctrl_msg = dyn_msg.velocity_control;
-        bool is_diff = false;
-        static double ang_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
-        static double ang_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
-        static double ang_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double diff_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double diff_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         for (int i = 0; i < 4; i++) {
             auto& tleg = targets[i];
             auto& pleg = presents[i];
             // if (!tleg.get().is_updated_) continue;  // 更新されたときだけpublishする
-            auto Dt = (now - pleg.get().updated_time_);
+            auto Dt = (now.seconds() - pleg.get().updated_time_);
 
             auto tar_ang_hy = tleg.get().hip_yaw_.servo_angle_;
             auto tar_ang_hp = tleg.get().hip_pitch_.servo_angle_;
@@ -190,9 +198,9 @@ class LegNode : public rclcpp::Node {
             auto diff_hy = tar_ang_hy - now_ang_hy;
             auto diff_hp = tar_ang_hp - now_ang_hp;
             auto diff_kp = tar_ang_kp - now_ang_kp;
-            auto vel_hy = gain["p"] * diff_hy;
-            auto vel_hp = gain["p"] * diff_hp;
-            auto vel_kp = gain["p"] * diff_kp;
+            auto vel_hy = gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
+            auto vel_hp = gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
+            auto vel_kp = gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
             // if (tleg.get().knee_pitch_.id_==2) ROS_ERROR("vel: %0.2f, vel_1: %0.2f, vel_2: %0.2f, Dt: %f| p %0.4f  p~ %0.4f pe %0.4f v %0.4f", vel_kp*rad2deg, vel_kp_1*rad2deg, vel_kp_2*rad2deg, Dt, ang_kp*rad2deg,  (pleg.get().knee_pitch_.servo_angle_+Dt*pleg.get().knee_pitch_.servo_velocity_)*rad2deg , pleg.get().knee_pitch_.servo_angle_*rad2deg, pleg.get().knee_pitch_.servo_velocity_*rad2deg);
 
             ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
@@ -218,13 +226,16 @@ class LegNode : public rclcpp::Node {
             // ctrl_msg.profile_acc_deg_ss.push_back(10000);
             // ctrl_msg.profile_acc_deg_ss.push_back(10000);
 
-            ang_hy_pre[i] = tar_ang_hy;
-            ang_hp_pre[i] = tar_ang_hp;
-            ang_kp_pre[i] = tar_ang_kp;
+            diff_hy_pre[i] = diff_hy;
+            diff_hp_pre[i] = diff_hp;
+            diff_kp_pre[i] = diff_kp;
 
             tleg.get().is_updated_ = false;
         }
-        if (ctrl_msg.id_list.size() != 0) dyn_cmd_pub_->publish(dyn_msg);
+        if (ctrl_msg.id_list.size() != 0) {
+            prev_cmd_time_ = now;
+            dyn_cmd_pub_->publish(dyn_msg);
+        }
     }
 
     void BroadcastLegState(std::string flag) {
