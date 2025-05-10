@@ -1,5 +1,5 @@
 ns:
-  leg_node_smooth:
+  leg_node_vel_base:
     ros__parameters:
         outer_gain:
           p: 9.5

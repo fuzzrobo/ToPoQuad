@@ -18,8 +18,8 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_auto_add_executable(leg_node_simple src/leg_node_simple.cpp)
-ament_auto_add_executable(leg_node_smooth src/leg_node_smooth.cpp)
+ament_auto_add_executable(leg_node_pos_base src/leg_node_pos_base.cpp)
+ament_auto_add_executable(leg_node_vel_base src/leg_node_vel_base.cpp)
 ament_auto_add_executable(neck_node src/neck_node.cpp)
 
 install(

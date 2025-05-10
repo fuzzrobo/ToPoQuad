@@ -28,9 +28,9 @@ def generate_launch_description():
     
     leg_node = Node(
         package='topoquad_master',
-        executable='leg_node_smooth',
+        executable='leg_node_vel_base',
         namespace='ns',
-        name='leg_node_smooth',
+        name='leg_node_vel_base',
         output='screen',
         parameters=[topoquad_master_config]
     )
