@@ -18,7 +18,6 @@ install(DIRECTORY
   urdf 
   gazebo 
   meshes 
-  ros2_control # memo いらないかも by michikawa
   DESTINATION share/${PROJECT_NAME}
 )
 

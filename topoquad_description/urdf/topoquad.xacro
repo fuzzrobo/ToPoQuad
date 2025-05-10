@@ -1,0 +1,679 @@
+<?xml version="1.0" ?>
+<robot name="topoquad" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:include filename="$(find topoquad_description)/gazebo/materials.xacro" />
+<xacro:include filename="$(find topoquad_description)/gazebo/topoquad.gazebo" />
+<xacro:include filename="$(find topoquad_description)/urdf/topoquad.trans" />
+
+<link name="world" />
+<joint name="world_fixed" type="fixed">
+  <parent link="world"/>
+  <child link="base_link"/>
+</joint>
+
+<link name="base_link">
+  <inertial>
+    <origin xyz="-0.00042104482109471097 1.886023652127901e-16 -0.01208876855171899" rpy="0 0 0"/>
+    <mass value="0.12658502927364312"/>
+    <inertia ixx="0.00016" iyy="0.000158" izz="0.000284" ixy="0.0" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="light_green"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Yaw-Hip_Pitch_1">
+  <inertial>
+    <origin xyz="0.008275795980022913 0.008280303512164446 -0.014296773725820186" rpy="0 0 0"/>
+    <mass value="0.01942791659585585"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="4e-06" ixy="-1e-06" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.044548 -0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.044548 -0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Pitch-Knee_Pitch_1">
+  <inertial>
+    <origin xyz="-0.001830990956208714 0.018387603670428118 2.1720514535412624e-06" rpy="0 0 0"/>
+    <mass value="0.01942792309846978"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="5e-06" ixy="-1e-06" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.086267 -0.065761 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.086267 -0.065761 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Foot_1">
+  <inertial>
+    <origin xyz="0.0002588440546713866 0.020505814748426665 1.7389581104099416e-06" rpy="0 0 0"/>
+    <mass value="0.021556207825352915"/>
+    <inertia ixx="4e-06" iyy="4e-06" izz="7e-06" ixy="-2e-06" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.117733 -0.097227 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.117733 -0.097227 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Yaw-Hip_Pitch_2">
+  <inertial>
+    <origin xyz="-0.008280303512164446 0.008275795980022913 -0.014296773725820186" rpy="0 0 0"/>
+    <mass value="0.01942791659585585"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="4e-06" ixy="1e-06" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.044548 -0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.044548 -0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Pitch-Knee_Pitch_2">
+  <inertial>
+    <origin xyz="-0.018387603506052397 -0.0018309911205844492 3.187606818864236e-06" rpy="0 0 0"/>
+    <mass value="0.01942792309846978"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="5e-06" ixy="1e-06" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.065761 -0.086267 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.065761 -0.086267 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Foot_2">
+  <inertial>
+    <origin xyz="-0.020505814729665825 0.00025884403591058813 2.872762956151594e-06" rpy="0 0 0"/>
+    <mass value="0.021556207825352915"/>
+    <inertia ixx="4e-06" iyy="4e-06" izz="7e-06" ixy="2e-06" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.097227 -0.117733 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.097227 -0.117733 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Yaw-Hip_Pitch_3">
+  <inertial>
+    <origin xyz="-0.008275795980023051 -0.00828030351216475 -0.01429677372582087" rpy="0 0 0"/>
+    <mass value="0.01942791659585585"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="4e-06" ixy="-1e-06" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.044548 0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.044548 0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Pitch-Knee_Pitch_3">
+  <inertial>
+    <origin xyz="0.0018309909562085613 -0.01838760367042834 2.172051453599064e-06" rpy="0 0 0"/>
+    <mass value="0.01942792309846978"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="5e-06" ixy="-1e-06" iyz="-0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.086267 0.065761 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.086267 0.065761 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Foot_3">
+  <inertial>
+    <origin xyz="-0.0002588440546715809 -0.02050581474842711 1.7389581112604982e-06" rpy="0 0 0"/>
+    <mass value="0.021556207825352915"/>
+    <inertia ixx="4e-06" iyy="4e-06" izz="7e-06" ixy="-2e-06" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.117733 0.097227 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.117733 0.097227 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Yaw-Hip_Pitch_4">
+  <inertial>
+    <origin xyz="0.008280303512164737 -0.008275795980023044 -0.014296773725821391" rpy="0 0 0"/>
+    <mass value="0.01942791659585585"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="4e-06" ixy="1e-06" iyz="-0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.044548 0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.044548 0.044548 -0.0146" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Yaw-Hip_Pitch_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Hip_Pitch-Knee_Pitch_4">
+  <inertial>
+    <origin xyz="0.018387603670428465 0.0018309909562084087 2.172051453060744e-06" rpy="0 0 0"/>
+    <mass value="0.01942792309846978"/>
+    <inertia ixx="3e-06" iyy="3e-06" izz="5e-06" ixy="1e-06" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.065761 0.086267 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.065761 0.086267 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Hip_Pitch-Knee_Pitch_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Foot_4">
+  <inertial>
+    <origin xyz="0.020505814748427456 -0.000258844054671567 1.7389581107002638e-06" rpy="0 0 0"/>
+    <mass value="0.021556207825352915"/>
+    <inertia ixx="4e-06" iyy="4e-06" izz="7e-06" ixy="2e-06" iyz="-0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.097227 0.117733 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.097227 0.117733 -9.6e-05" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Foot_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Base_1">
+  <inertial>
+    <origin xyz="-0.00029446900398619885 -0.00029447062550457676 1.0858331483845456e-10" rpy="0 0 0"/>
+    <mass value="0.007755472627062109"/>
+    <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.032527 -0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.032527 -0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Base_2">
+  <inertial>
+    <origin xyz="0.00029447062550457676 -0.00029446900398619885 1.0858331483845456e-10" rpy="0 0 0"/>
+    <mass value="0.007755472627062109"/>
+    <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0.0" iyz="-0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.032527 -0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.032527 -0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_2.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Base_3">
+  <inertial>
+    <origin xyz="0.00029446900398600456 0.00029447062550432 1.0858305406072702e-10" rpy="0 0 0"/>
+    <mass value="0.007755472627062109"/>
+    <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="-0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.032527 0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.032527 0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_3.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Leg_Base_4">
+  <inertial>
+    <origin xyz="-0.00029447062550429226 0.0002944690039859907 1.0858305682544256e-10" rpy="0 0 0"/>
+    <mass value="0.007755472627062109"/>
+    <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0.0" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.032527 0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.032527 0.032527 -0.0001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Leg_Base_4.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Layer_Second_with_Spacer_1">
+  <inertial>
+    <origin xyz="5.017947999737173e-15 -0.00015187607502035533 0.06014814419419935" rpy="0 0 0"/>
+    <mass value="0.08503287351951955"/>
+    <inertia ixx="0.000113" iyy="0.000114" izz="0.000225" ixy="-0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.0 -0.0 0.0396" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Layer_Second_with_Spacer_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="light_green"/>
+  </visual>
+  <collision>
+    <origin xyz="0.0 -0.0 0.0396" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Layer_Second_with_Spacer_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="AIIT-Layer_Third_v9_1">
+  <inertial>
+    <origin xyz="0.00015902097613279596 -0.0004732515784768624 0.015027958744617431" rpy="0 0 0"/>
+    <mass value="0.08051310653888678"/>
+    <inertia ixx="0.000105" iyy="0.000105" izz="0.00021" ixy="-1e-06" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.0 -0.0 -0.04" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/AIIT-Layer_Third_v9_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="light_green"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.0 -0.0 -0.04" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/AIIT-Layer_Third_v9_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="2XC430_v1_1">
+  <inertial>
+    <origin xyz="0.0005169167054052409 0.012000152443245933 0.01848298942307839" rpy="0 0 0"/>
+    <mass value="0.05639534986234374"/>
+    <inertia ixx="1.6e-05" iyy="1.2e-05" izz="1.6e-05" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.0 -0.045 -0.0575" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/2XC430_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.0 -0.045 -0.0575" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/2XC430_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Pan-Tilt_Unit_v5_1">
+  <inertial>
+    <origin xyz="-0.02004207680039613 0.0418519234214548 -2.0770072362827352e-05" rpy="0 0 0"/>
+    <mass value="0.050238710437377695"/>
+    <inertia ixx="8e-06" iyy="2.9e-05" izz="3.2e-05" ixy="0.0" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.019 -0.069 -0.0765" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Pan-Tilt_Unit_v5_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.019 -0.069 -0.0765" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Pan-Tilt_Unit_v5_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="OpenCR_v1_1">
+  <inertial>
+    <origin xyz="-0.05443046180039381 0.03160955062376951 0.0025977515138763917" rpy="0 0 0"/>
+    <mass value="0.067"/>
+    <inertia ixx="3e-05" iyy="4.3e-05" izz="5.7e-05" ixy="0.0" iyz="0.0" ixz="-1e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.048 0.033 -0.0275" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/OpenCR_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.048 0.033 -0.0275" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/OpenCR_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="Raspberry_Pi_4_Model_B_v1_1">
+  <inertial>
+    <origin xyz="-0.004472753962607014 0.025044400681160393 0.00500412850423039" rpy="0 0 0"/>
+    <mass value="0.018729261224014644"/>
+    <inertia ixx="5e-06" iyy="1.3e-05" izz="1.7e-05" ixy="0.0" iyz="0.0" ixz="-1e-06"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.0175 0.0365 -0.0625" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Raspberry_Pi_4_Model_B_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.0175 0.0365 -0.0625" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/Raspberry_Pi_4_Model_B_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="3P_JST_Expansion_Board_v1_1">
+  <visual>
+    <origin xyz="-0.0145 0.048 -0.0275" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/3P_JST_Expansion_Board_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.0145 0.048 -0.0275" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://topoquad_description/meshes/3P_JST_Expansion_Board_v1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="joint_5" type="revolute">
+  <origin xyz="0.012021 0.012021 0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Base_1"/>
+  <child link="Leg_Hip_Yaw-Hip_Pitch_1"/>
+  <axis xyz="0.0 0.0 1.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_6" type="revolute">
+  <origin xyz="0.041719 0.021213 -0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Yaw-Hip_Pitch_1"/>
+  <child link="Leg_Hip_Pitch-Knee_Pitch_1"/>
+  <axis xyz="-0.707107 0.707107 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_7" type="revolute">
+  <origin xyz="0.031466 0.031466 -4e-06" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Pitch-Knee_Pitch_1"/>
+  <child link="Leg_Foot_1"/>
+  <axis xyz="-0.707107 0.707107 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_8" type="revolute">
+  <origin xyz="-0.012021 0.012021 0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Base_2"/>
+  <child link="Leg_Hip_Yaw-Hip_Pitch_2"/>
+  <axis xyz="-0.0 0.0 1.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_9" type="revolute">
+  <origin xyz="-0.021213 0.041719 -0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Yaw-Hip_Pitch_2"/>
+  <child link="Leg_Hip_Pitch-Knee_Pitch_2"/>
+  <axis xyz="-0.707107 -0.707107 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_10" type="revolute">
+  <origin xyz="-0.031466 0.031466 0.0" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Pitch-Knee_Pitch_2"/>
+  <child link="Leg_Foot_2"/>
+  <axis xyz="-0.707107 -0.707107 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_11" type="revolute">
+  <origin xyz="-0.012021 -0.012021 0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Base_3"/>
+  <child link="Leg_Hip_Yaw-Hip_Pitch_3"/>
+  <axis xyz="-0.0 -0.0 1.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_12" type="revolute">
+  <origin xyz="-0.041719 -0.021213 -0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Yaw-Hip_Pitch_3"/>
+  <child link="Leg_Hip_Pitch-Knee_Pitch_3"/>
+  <axis xyz="0.707107 -0.707107 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_13" type="revolute">
+  <origin xyz="-0.031466 -0.031466 -4e-06" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Pitch-Knee_Pitch_3"/>
+  <child link="Leg_Foot_3"/>
+  <axis xyz="0.707107 -0.707107 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_14" type="revolute">
+  <origin xyz="0.012021 -0.012021 0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Base_4"/>
+  <child link="Leg_Hip_Yaw-Hip_Pitch_4"/>
+  <axis xyz="0.0 -0.0 1.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_15" type="revolute">
+  <origin xyz="0.021213 -0.041719 -0.0145" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Yaw-Hip_Pitch_4"/>
+  <child link="Leg_Hip_Pitch-Knee_Pitch_4"/>
+  <axis xyz="0.707107 0.707107 -0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_16" type="revolute">
+  <origin xyz="0.031466 -0.031466 -4e-06" rpy="0 0 0"/>
+  <parent link="Leg_Hip_Pitch-Knee_Pitch_4"/>
+  <child link="Leg_Foot_4"/>
+  <axis xyz="0.707107 0.707107 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_21" type="fixed">
+  <origin xyz="0.032527 0.032527 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="Leg_Base_1"/>
+</joint>
+
+<joint name="joint_22" type="fixed">
+  <origin xyz="-0.032527 0.032527 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="Leg_Base_2"/>
+</joint>
+
+<joint name="joint_23" type="fixed">
+  <origin xyz="-0.032527 -0.032527 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="Leg_Base_3"/>
+</joint>
+
+<joint name="joint_24" type="fixed">
+  <origin xyz="0.032527 -0.032527 0.0001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="Leg_Base_4"/>
+</joint>
+
+<joint name="joint_26" type="fixed">
+  <origin xyz="0.0 0.0 -0.0396" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="Layer_Second_with_Spacer_1"/>
+</joint>
+
+<joint name="joint_27" type="fixed">
+  <origin xyz="0.0 0.0 0.0796" rpy="0 0 0"/>
+  <parent link="Layer_Second_with_Spacer_1"/>
+  <child link="AIIT-Layer_Third_v9_1"/>
+</joint>
+
+<joint name="joint_29" type="revolute">
+  <origin xyz="0.0 0.045 0.0175" rpy="0 0 0"/>
+  <parent link="AIIT-Layer_Third_v9_1"/>
+  <child link="2XC430_v1_1"/>
+  <axis xyz="0.0 0.0 -1.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_30" type="revolute">
+  <origin xyz="0.019 0.024 0.019" rpy="0 0 0"/>
+  <parent link="2XC430_v1_1"/>
+  <child link="Pan-Tilt_Unit_v5_1"/>
+  <axis xyz="1.0 -0.0 0.0"/>
+  <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+</joint>
+
+<joint name="joint_31" type="fixed">
+  <origin xyz="0.048 -0.033 0.0671" rpy="0 0 0"/>
+  <parent link="Layer_Second_with_Spacer_1"/>
+  <child link="OpenCR_v1_1"/>
+</joint>
+
+<joint name="joint_32" type="fixed">
+  <origin xyz="0.0175 -0.0365 0.0225" rpy="0 0 0"/>
+  <parent link="AIIT-Layer_Third_v9_1"/>
+  <child link="Raspberry_Pi_4_Model_B_v1_1"/>
+</joint>
+
+<joint name="joint_33" type="fixed">
+  <origin xyz="0.0145 -0.048 0.0671" rpy="0 0 0"/>
+  <parent link="Layer_Second_with_Spacer_1"/>
+  <child link="3P_JST_Expansion_Board_v1_1"/>
+</joint>
+
+</robot>

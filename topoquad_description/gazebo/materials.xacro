@@ -3,7 +3,16 @@
 Copied from open_manipulator example -
 https://github.com/ROBOTIS-GIT/open_manipulator/blob/foxy-devel/open_manipulator_x_description/urdf/materials.xacro
 -->
-<robot>
+
+<robot name="topoquad" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+<material name="silver">
+  <color rgba="0.300 0.300 0.300 1.000"/>
+</material>
+
+<material name="light_green">
+  <color rgba="0.55 1.00 0.25 1.00"/>
+</material>
 
   <material name="black">
     <color rgba="0.0 0.0 0.0 1.0"/>

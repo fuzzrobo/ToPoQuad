@@ -6,9 +6,11 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /RobotModel1
+        - /RobotModel1/Mass Properties1
         - /TF1
       Splitter Ratio: 0.5055555701255798
-    Tree Height: 784
+    Tree Height: 1344
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -69,6 +71,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /scan
@@ -88,187 +91,157 @@ Visualization Manager:
         Value: /robot_description
       Enabled: true
       Links:
+        2XC430_v1_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        3P_JST_Expansion_Board_v1_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        AIIT-Layer_Third_v9_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        base_footprint:
+        Layer_Second_with_Spacer_1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+          Value: true
+        Leg_Base_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Base_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Base_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Base_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Foot_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Foot_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Foot_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Foot_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Pitch-Knee_Pitch_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Pitch-Knee_Pitch_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Pitch-Knee_Pitch_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Pitch-Knee_Pitch_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Yaw-Hip_Pitch_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Yaw-Hip_Pitch_2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Yaw-Hip_Pitch_3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Leg_Hip_Yaw-Hip_Pitch_4:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Link Tree Style: Links in Alphabetic Order
+        OpenCR_v1_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Pan-Tilt_Unit_v5_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        Raspberry_Pi_4_Model_B_v1_1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        base_scan:
+        world:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        camera_rgb_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        camera_rgb_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        caster_back_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        end_effector_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gripper_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gripper_link_sub:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        link1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        link2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        link3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        link4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        link5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
+      Mass Properties:
+        Inertia: false
+        Mass: false
       Name: RobotModel
       TF Prefix: ""
       Update Interval: 0
       Value: true
       Visual Enabled: true
     - Class: rviz_default_plugins/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_footprint:
-          Value: true
-        base_link:
-          Value: true
-        base_scan:
-          Value: true
-        camera_link:
-          Value: true
-        camera_rgb_frame:
-          Value: true
-        camera_rgb_optical_frame:
-          Value: true
-        caster_back_left_link:
-          Value: true
-        caster_back_right_link:
-          Value: true
-        end_effector_link:
-          Value: true
-        gripper_link:
-          Value: true
-        gripper_link_sub:
-          Value: true
-        imu_link:
-          Value: true
-        link1:
-          Value: true
-        link2:
-          Value: true
-        link3:
-          Value: true
-        link4:
-          Value: true
-        link5:
-          Value: true
-        wheel_left_link:
-          Value: true
-        wheel_right_link:
-          Value: true
       Marker Scale: 0.20000000298023224
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        base_footprint:
-          base_link:
-            base_scan:
-              {}
-            camera_link:
-              camera_rgb_frame:
-                camera_rgb_optical_frame:
-                  {}
-            caster_back_left_link:
-              {}
-            caster_back_right_link:
-              {}
-            imu_link:
-              {}
-            link1:
-              link2:
-                link3:
-                  link4:
-                    link5:
-                      end_effector_link:
-                        {}
-                      gripper_link:
-                        {}
-                      gripper_link_sub:
-                        {}
-            wheel_left_link:
-              {}
-            wheel_right_link:
-              {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Angle Tolerance: 0.10000000149011612
       Class: rviz_default_plugins/Odometry
       Covariance:
@@ -303,6 +276,7 @@ Visualization Manager:
       Topic:
         Depth: 5
         Durability Policy: Volatile
+        Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /odom
@@ -310,7 +284,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -356,24 +330,24 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.764797031879425
+      Pitch: 0.7097966074943542
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.7785595655441284
+      Yaw: 2.428558588027954
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1023
+  Height: 1567
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000016a000003a2fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006300fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003e000003a2000000da00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000038efc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a0056006900650077007300000000350000038e000000b100fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004ff0000003efc0100000002fb0000000800540069006d00650100000000000004ff0000000000000000fb0000000800540069006d006501000000000000045000000000000000000000038f000003a200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002bf000005c9fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000005c9000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000038efc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a0056006900650077007300000000350000038e000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004ff0000003efc0100000002fb0000000800540069006d00650100000000000004ff0000000000000000fb0000000800540069006d00650100000000000004500000000000000000000006a9000005c900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Tool Properties:
     collapsed: false
   Views:
     collapsed: true
-  Width: 1279
-  X: 45
-  Y: 44
+  Width: 2414
+  X: 6134
+  Y: 0
