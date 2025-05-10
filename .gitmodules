@@ -1,0 +1,3 @@
+[submodule "dynamixel_handler"]
+	path = dynamixel_handler
+	url = https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros2.git
