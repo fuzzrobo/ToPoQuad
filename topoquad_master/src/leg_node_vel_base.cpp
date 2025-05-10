@@ -93,7 +93,7 @@ class LegNode : public rclcpp::Node {
     
     void main_loop(){
         auto now = this->get_clock()->now();
-        if (now.seconds() - prev_cmd_time_.seconds() < 0.5) return;
+        if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
         dynamixel_handler::msg::DxlCommandsX dyn_msg;
         for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
             dyn_msg.velocity_control.id_list.push_back( leg.get().hip_yaw_.id_);  

@@ -10,8 +10,8 @@ from math import pi, sin, cos, sqrt, hypot
 
 # Static
 r = 0.025
-s = 0.040
-h = 0.022
+s = 0.045
+h = 0.025
 base_radius = 0.080
 base_height = 0.100
 class TeleopNode(Node):
@@ -63,8 +63,7 @@ class TeleopNode(Node):
         else:
             self.get_logger().info(f"vx: {vx}, vy: {vy}", throttle_duration_sec = 0.5)
             self.move_parallel(point, vx, vy)
-        if vx or vy or rot:
-            self.leg_point_pub_.publish(point)
+        self.leg_point_pub_.publish(point)
     
     def move_parallel(self, point, vx, vy):
         body_motion = lambda time: [

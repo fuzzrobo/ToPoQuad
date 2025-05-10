@@ -2,8 +2,8 @@ ns:
   leg_node_vel_base:
     ros__parameters:
         outer_gain:
-          p: 9.5
-          # i: 0.0
-          # d: 0.0
+          p: 10.5
+          i: 0.0
+          d: 0.0
         dynamixel_gain:
-          vel_p: 1400.0
+          vel_p: 1000.0
