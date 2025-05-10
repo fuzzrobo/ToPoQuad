@@ -1,22 +1,100 @@
 # ToPoQuad
 
-> [!IMPORTANT]
-> dynamixel_handler pkg は独立させたので，別途`$ git clone`が必要です．
-> [こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros1/tree/main)
+## セットアップ手順
 
-## 現状実装されている機能
- - 脚への角度指令をDynamixelへの角度指令への変換 [topoquad_master/leg_node]
- - 足先の位置をDynamixelへの角度指令へ変換 [topoquad_master/leg_node]
-    - 足先位置はBody座標系から見たもの．
-    - 単純な3LinkのIKを解いている．
- - 首への角度指令をDynamixelへの角度指令へ変換 [topoquad_master/neck_node]
- - ４脚歩容のサンプル [topoquad_control/leg_sample_control.py]
- - IKを使った4脚歩容のサンプル [topoquad_control/leg_sample_walk.py]
- - 首のパンチルト機構による物体のトラッキング [topoquad_control/neck_tracking_target, detect_target_color]
-    - realsenseの画像から特定の色の位置を検出
-    - 画角の中心に物体が来るようにパンチルト角を制御
+### 1. ロボット側コンピュータの環境設定 (Raspberry Pi 4b)
 
-## 起動方法
+#### 1.1. Raspberry Pi 4b のセットアップについて
+
+#### 1.2. ROS 2 Humble のインストール
+
+[ROS 公式のインストールガイド](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)に従って，ROS 2 Humbleをインストールします．
+
+まず，Ubuntu Universe リポジトリが有効になっていることを確認します．
+```bash
+$ sudo apt install -y software-properties-common
+$ sudo add-apt-repository universe
+```
+
+ROS 2 Humbleをインストールします．
+```bash
+$ sudo apt update && sudo apt -y install curl gnupg lsb-release
+$ sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+$ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+$ sudo apt update
+$ sudo apt install -y ros-humble-desktop
+$ echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+$ source ~/.bashrc
+$ sudo apt install -y python3-colcon-common-extensions python3-pip
+```
+
+#### 1.3. ToPoQuad用 ROS 2 パッケージのインストール
+
+```bash
+cd ~/ros2_ws/src
+git clone --recursive https://github.com/ROBOTIS-JAPAN-GIT/ToPoQuad.git -b humble-devel
+cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash
+```
+
+### 2. リモートPCの環境設定
+
+#### 2.1. リモートPCのセットアップについて
+ロボットを完全自律で動かす場合を除き、リモートPC側にもROS 2環境やドライバをインストールする必要があります。
+
+#### 2.2. ROS 2 Humbleのインストール
+
+- ROS 2 がインストールされている場合
+
+    ワークスペースを作成します．
+    ```bash
+    $ mkdir -p ~/turtlebot3_ws/src
+    $ cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
+    ```
+    ワークスペースやROS_DOMAINを設定します．
+    ```bash
+    $ echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+    $ echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
+    $ source ~/.bashrc
+    ```
+
+
+- ROS 2 がインストールされていない場合
+    <details>
+  
+    <summary><a href="#12-ros-2-humble-のインストール">1.2. ROS 2 Humble のインストール</a>と同様です．</summary>
+    <a href="[#12-ros-2-humble-のインストール](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html))">ROS 公式のインストールガイド</a>に従って，ROS 2 Humbleをインストールします．
+    まず，Ubuntu Universe リポジトリが有効になっていることを確認します．
+    ```bash
+    $ sudo apt install -y software-properties-common
+    $ sudo add-apt-repository universe
+    ```
+
+    ROS 2 Humbleをインストールします．
+    ```bash
+    $ sudo apt update && sudo apt -y install curl gnupg lsb-release
+    $ sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+    $ echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+    $ sudo apt update
+    $ sudo apt install -y ros-humble-desktop
+    $ echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+    $ source ~/.bashrc
+    $ sudo apt install -y python3-colcon-common-extensions python3-pip
+    ```
+
+    ワークスペースを作成します．
+    ```bash
+    $ mkdir -p ~/turtlebot3_ws/src
+    $ cd ~/turtlebot3_ws && colcon build --symlink-install && . install/setup.bash
+    ```
+    ワークスペースやROS_DOMAINを設定します．
+    ```bash
+    $ echo '. ~/turtlebot3_ws/install/setup.bash' >> ~/.bashrc
+    $ echo 'export ROS_DOMAIN_ID=30 #TURTLEBOT3' >> ~/.bashrc
+    $ source ~/.bashrc
+    ```
+    </details>
+
+## 3. 実機での動かし方
 
 ### まとめてroslaunch
 
@@ -39,28 +117,6 @@ $ roslaunch topoquad_control tracking_target_color_with_sample_walk.launch
 デフォルトだと"Dynamixelとの通信を司るノード"のusb deviceの値が`DEVICE=/dev/ttyUSB0`になっているので，適当に変更すること．
 `dynamixel_handler.launch`を複製して，`DEVICE`をラズパイ用に変更した`dynamixel_raspi.launch`を作成するとよいかと思われる．
 
-### 個別にrosrun
-
-#### 1 roscore
-```
-$ roscore
-```
-
-#### 2 Dynamixelとの通信を司るノード
-[こちらを参照](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros2/tree/opencr_imu)
-
-#### 3-1 脚への制御指令を受け付けるノード
-```
-$ rosrun topoquad_master leg_node
-```
-ロボットの関節にどのIDのdynamixelがどんな向きでついているかを知っているノード．
-脚の関節角の指令をsubして，dynamixelへの角度指令に直してpubしている．
-
-#### 3-1 首への制御指令を受け付けるノード
-```
-$ rosrun topoquad_master neck_node
-```
-機能は同上．
 
 #### 4-1 脚への制御指令を出力するノード
 ```
@@ -103,13 +159,9 @@ $ pose1
 とすれば，指定した姿勢になるようにros topicがpubされる．
 
 
-## トピックについて
-各pkgのReadMeを参照．
-（まだ controlは書けてないので，直接launch or src読んでください，すいません．）
-
 ## dynamixel id map
 
-#### 脚
+### Leg/脚
 topoquad_master pkg の leg_node が 持っている情報.
  - 後右 :  4  3  2
  - 前右 : 14 13 12
@@ -119,13 +171,10 @@ topoquad_master pkg の leg_node が 持っている情報.
 
  launchから書き換え可能．
 
-#### 首(optional)
+### Neck/首 (optional)
 topoquad_master pkg の neck_node が 持っている情報.
  - Pan : 43
  - Tilt : 42
 
  launchから書き換え可能．
-
-## メモ
-dynamixel_handlerは将来リポジトリごと独立させた．
 
