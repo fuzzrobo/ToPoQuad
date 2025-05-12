@@ -5,7 +5,7 @@ using std::string;
 
 class LegNode : public rclcpp::Node {
     rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
-    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_;
+    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_, leg_state_t_pub_;
 
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>::SharedPtr leg_point_sub_;
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegAngle>::SharedPtr leg_angle_sub_;
@@ -20,6 +20,8 @@ class LegNode : public rclcpp::Node {
     Leg target_leg_bl_, goal_leg_bl_, present_leg_bl_;
 
     map<string, double> gain;
+    double overshoot_;
+    double deadband_;
 
    public:
     LegNode()
@@ -60,7 +62,14 @@ class LegNode : public rclcpp::Node {
         gain["d"] = this->get_parameter("outer_gain.d").as_double();
 
         this->declare_parameter<double>("dynamixel_gain.vel_p", 50.0);
+        this->declare_parameter<double>("dynamixel_gain.pos_p", 800.0);
         gain["dxl_vel_p"] = this->get_parameter("dynamixel_gain.vel_p").as_double();
+        gain["dxl_pos_p"] = this->get_parameter("dynamixel_gain.pos_p").as_double();
+
+        this->declare_parameter<double>("overshoot", 50.0);
+        overshoot_ = this->get_parameter("overshoot").as_double()*deg2rad;
+        this->declare_parameter<double>("deadband", 1.0);
+        deadband_ = this->get_parameter("deadband").as_double()*deg2rad;
 
         present_leg_fr_ = target_leg_fr_;
         present_leg_fl_ = target_leg_fl_;
@@ -76,6 +85,7 @@ class LegNode : public rclcpp::Node {
         dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
         leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/present", 10);
         leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/goal", 10);
+        leg_state_t_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/target", 10);
 
         // Subscribers
         leg_point_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>(
@@ -134,6 +144,7 @@ class LegNode : public rclcpp::Node {
         auto angle_bl = leg_ik(msg->leg_bl, target_leg_bl_.fixed_pose_, -1);
         if (!isnan(angle_bl[0]) && !isnan(angle_bl[1]) && !isnan(angle_bl[2])) target_leg_bl_.SetJointAngles(angle_bl);
         BroadcastDynamixelCommand();
+        BroadcastLegState("target");
     }
     void leg_angle_cb(const topoquad_msgs::msg::QuadRobotCmdLegAngle::SharedPtr msg) {
         if (msg->angles_fr.size() > 1) target_leg_fr_.SetJointAngles(msg->angles_fr);
@@ -141,6 +152,8 @@ class LegNode : public rclcpp::Node {
         if (msg->angles_br.size() > 1) target_leg_br_.SetJointAngles(msg->angles_br);
         if (msg->angles_bl.size() > 1) target_leg_bl_.SetJointAngles(msg->angles_bl);
         BroadcastDynamixelCommand();
+        BroadcastLegState("target");
+
     }
     void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
         for (auto& leg : {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)}) {
@@ -176,8 +189,10 @@ class LegNode : public rclcpp::Node {
         }
         BroadcastLegState("goal");
 
+        // gain 調整
         if (auto& g=msg->gain; !g.id_list.empty()){
-            if (g.velocity_p_gain_pulse[0] == gain["dxl_vel_p"]) return;
+            if (g.velocity_p_gain_pulse[0] == gain["dxl_vel_p"] && 
+                g.position_p_gain_pulse[0] == gain["dxl_pos_p"] ) return;
             dynamixel_handler::msg::DxlCommandsX dyn_msg;
             for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
                 dyn_msg.gain.id_list.push_back( leg.get().hip_yaw_.id_);  
@@ -186,6 +201,9 @@ class LegNode : public rclcpp::Node {
                 dyn_msg.gain.velocity_p_gain_pulse.push_back(gain["dxl_vel_p"]);
                 dyn_msg.gain.velocity_p_gain_pulse.push_back(gain["dxl_vel_p"]);
                 dyn_msg.gain.velocity_p_gain_pulse.push_back(gain["dxl_vel_p"]);
+                dyn_msg.gain.position_p_gain_pulse.push_back(gain["dxl_pos_p"]);
+                dyn_msg.gain.position_p_gain_pulse.push_back(gain["dxl_pos_p"]);
+                dyn_msg.gain.position_p_gain_pulse.push_back(gain["dxl_pos_p"]);
             }
             dyn_cmd_pub_->publish(dyn_msg);
         }
@@ -197,14 +215,13 @@ class LegNode : public rclcpp::Node {
         auto now = this->get_clock()->now();
 
         dynamixel_handler::msg::DxlCommandsX dyn_msg;
-        auto& ctrl_msg = dyn_msg.velocity_control;
+        auto& ctrl_msg = dyn_msg.current_base_position_control;
         static double diff_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         for (int i = 0; i < 4; i++) {
             auto& tleg = targets[i];
             auto& pleg = presents[i];
-            // if (!tleg.get().is_updated_) continue;  // 更新されたときだけpublishする
             auto Dt = (now.seconds() - pleg.get().updated_time_);
 
             auto tar_ang_hy = tleg.get().hip_yaw_.servo_angle_;
@@ -216,39 +233,36 @@ class LegNode : public rclcpp::Node {
             auto diff_hy = tar_ang_hy - now_ang_hy;
             auto diff_hp = tar_ang_hp - now_ang_hp;
             auto diff_kp = tar_ang_kp - now_ang_kp;
-            auto vel_hy = gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
-            auto vel_hp = gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
-            auto vel_kp = gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
-            // if (tleg.get().knee_pitch_.id_==2) ROS_ERROR("vel: %0.2f, vel_1: %0.2f, vel_2: %0.2f, Dt: %f| p %0.4f  p~ %0.4f pe %0.4f v %0.4f", vel_kp*rad2deg, vel_kp_1*rad2deg, vel_kp_2*rad2deg, Dt, ang_kp*rad2deg,  (pleg.get().knee_pitch_.servo_angle_+Dt*pleg.get().knee_pitch_.servo_velocity_)*rad2deg , pleg.get().knee_pitch_.servo_angle_*rad2deg, pleg.get().knee_pitch_.servo_velocity_*rad2deg);
+            auto vel_hy = fabs(diff_hy)<deadband_ ? 0.0 : gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
+            auto vel_hp = fabs(diff_hp)<deadband_ ? 0.0 : gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
+            auto vel_kp = fabs(diff_kp)<deadband_ ? 0.0 : gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
+            auto pos_hy = fabs(diff_hy)<deadband_ ? tar_ang_hy : (0<diff_hy) ? tar_ang_hy+overshoot_ : tar_ang_hy-overshoot_;
+            auto pos_hp = fabs(diff_hp)<deadband_ ? tar_ang_hp : (0<diff_hp) ? tar_ang_hp+overshoot_ : tar_ang_hp-overshoot_;
+            auto pos_kp = fabs(diff_kp)<deadband_ ? tar_ang_kp : (0<diff_kp) ? tar_ang_kp+overshoot_ : tar_ang_kp-overshoot_;
 
             ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
             ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
             ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
-            ctrl_msg.velocity_deg_s.push_back((vel_hy * rad2deg));
-            ctrl_msg.velocity_deg_s.push_back((vel_hp * rad2deg));
-            ctrl_msg.velocity_deg_s.push_back((vel_kp * rad2deg));
+            // ctrl_msg.velocity_deg_s.push_back((vel_hy * rad2deg));
+            // ctrl_msg.velocity_deg_s.push_back((vel_hp * rad2deg));
+            // ctrl_msg.velocity_deg_s.push_back((vel_kp * rad2deg));
 
-            // auto pos_hy = fabs(diff_hy)<1*deg2rad ? now_ang_hy : (0<diff_hy) ? +90*deg2rad : +90*deg2rad;
-            // auto pos_hp = fabs(diff_hp)<1*deg2rad ? now_ang_hp : (0<diff_hp) ? +90*deg2rad : +90*deg2rad;
-            // auto pos_kp = fabs(diff_kp)<1*deg2rad ? now_ang_kp : (0<diff_kp) ? +90*deg2rad : +90*deg2rad;
-            // ctrl_msg.position_deg.push_back(pos_hy * rad2deg);
-            // ctrl_msg.position_deg.push_back(pos_hp * rad2deg);
-            // ctrl_msg.position_deg.push_back(pos_kp * rad2deg);
-            // ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
-            // ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
-            // ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
-            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hy * rad2deg));
-            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hp * rad2deg));
-            // ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_kp * rad2deg));
-            // ctrl_msg.profile_acc_deg_ss.push_back(10000);
-            // ctrl_msg.profile_acc_deg_ss.push_back(10000);
-            // ctrl_msg.profile_acc_deg_ss.push_back(10000);
+            ctrl_msg.position_deg.push_back(pos_hy * rad2deg);
+            ctrl_msg.position_deg.push_back(pos_hp * rad2deg);
+            ctrl_msg.position_deg.push_back(pos_kp * rad2deg);
+            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hy * rad2deg));
+            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hp * rad2deg));
+            ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_kp * rad2deg));
+            ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
+            // ctrl_msg.profile_acc_deg_ss.push_back(0);
+            // ctrl_msg.profile_acc_deg_ss.push_back(0);
+            // ctrl_msg.profile_acc_deg_ss.push_back(0);
 
             diff_hy_pre[i] = diff_hy;
             diff_hp_pre[i] = diff_hp;
             diff_kp_pre[i] = diff_kp;
-
-            tleg.get().is_updated_ = false;
         }
         if (ctrl_msg.id_list.size() != 0) {
             prev_cmd_time_ = now;
@@ -258,8 +272,9 @@ class LegNode : public rclcpp::Node {
 
     void BroadcastLegState(std::string flag) {
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
+        static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
         static vector<std::reference_wrapper<Leg>> goals = {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)};
-        auto legs = (flag == "present") ? presents : goals;
+        auto legs = (flag == "present") ? presents : (flag == "target") ? targets : goals;
 
         topoquad_msgs::msg::QuadRobotStateLeg leg_msg;
         bool is_any_updated_p = false;
@@ -292,7 +307,9 @@ class LegNode : public rclcpp::Node {
             is_any_updated_p = true;
         }
 
-        if (is_any_updated_p) (flag == "present") ? leg_state_p_pub_->publish(leg_msg) : leg_state_g_pub_->publish(leg_msg);
+        if (is_any_updated_p) 
+            (flag == "present") ? leg_state_p_pub_->publish(leg_msg) :
+            (flag == "target" ) ? leg_state_t_pub_->publish(leg_msg) : leg_state_g_pub_->publish(leg_msg);
     }
 };
 
