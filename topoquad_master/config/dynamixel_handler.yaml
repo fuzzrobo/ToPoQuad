@@ -26,7 +26,7 @@ ns:
         default/profile_acc: 50015.0 # deg/s^2
         default/profile_vel: 600.0 # deg/s
     # ループの設定
-        loop_rate: 200 # メインループの周期
+        loop_rate: 150 # メインループの周期
         verbose_ratio: 300 # メインループのlog出力の割合(処理時間，通信の成功率), ex 100なら100回に1回出力
         pub_outdated_present_value: true # 最新でないpresent_XXXをpublishするかどうか. false ならば 直近のループでreadした Present の要素のみmsgに含められる．
         pub_ratio/present: # present_XXXを読み取る割合
@@ -36,13 +36,13 @@ ns:
             position:             2 # この回数に一回present_positionを読み取る
             velocity_trajectory:  0 # この回数に一回velocity_trajectoryを読み取る
             position_trajectory:  0 # この回数に一回position_trajectoryを読み取る
-            input_voltage:       29 # この回数に一回present_input_voltageを読み取る
-            temperature:         29 # この回数に一回present_temperatureを読み取る
+            input_voltage:       290 # この回数に一回present_input_voltageを読み取る
+            temperature:         290 # この回数に一回present_temperatureを読み取る
         pub_ratio/status: 47 # この回数に一回 Status を読み取る, 0=初回のみ
-        pub_ratio/goal: 11  # この回数に一回 Goal を読み取る, 0=初回のみ
-        pub_ratio/gain: 101 # この回数に一回 Gain を読み取る, 0=初回のみ
-        pub_ratio/limit: 307 # この回数に一回 Limit を読み取る, 0=初回のみ
-        pub_ratio/error: 53 # この回数に一回 Hardware error を読み取る, 0=初回のみ
+        pub_ratio/goal: 2  # この回数に一回 Goal を読み取る, 0=初回のみ
+        pub_ratio/gain: 1010 # この回数に一回 Gain を読み取る, 0=初回のみ
+        pub_ratio/limit: 3070 # この回数に一回 Limit を読み取る, 0=初回のみ
+        pub_ratio/error: 530 # この回数に一回 Hardware error を読み取る, 0=初回のみ
     # Read/Write方式
         method/fast_read: true
         method/split_read: false

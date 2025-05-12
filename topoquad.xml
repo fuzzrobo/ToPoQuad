@@ -1,50 +1,50 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
- <tabbed_widget name="Main Window" parent="main_window">
-  <Tab tab_name="tab1" containers="1">
+ <tabbed_widget parent="main_window" name="Main Window">
+  <Tab tab_name="point" containers="1">
    <Container>
-    <DockSplitter count="1" sizes="1" orientation="-">
-     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
-      <DockSplitter count="2" sizes="0.500312;0.499688" orientation="-">
+    <DockSplitter sizes="1" count="1" orientation="-">
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
        <DockArea name="...">
-        <plot mode="XYPlot" flip_x="false" flip_y="false" style="Lines">
-         <range top="0.084205" bottom="-0.084132" left="-0.141512" right="0.141438"/>
+        <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+         <range left="-0.194032" top="0.115498" bottom="-0.115498" right="0.194790"/>
          <limitY/>
-         <curve color="#17becf" name="/ns/legs/point/leg_bl/[x;y]" curve_y="/ns/legs/point/leg_bl/y" curve_x="/ns/legs/point/leg_bl/x"/>
-         <curve color="#bcbd22" name="/ns/legs/point/leg_br/[x;y]" curve_y="/ns/legs/point/leg_br/y" curve_x="/ns/legs/point/leg_br/x"/>
-         <curve color="#1f77b4" name="/ns/legs/point/leg_fl/[x;y]" curve_y="/ns/legs/point/leg_fl/y" curve_x="/ns/legs/point/leg_fl/x"/>
-         <curve color="#d62728" name="/ns/legs/point/leg_fr/[x;y]" curve_y="/ns/legs/point/leg_fr/y" curve_x="/ns/legs/point/leg_fr/x"/>
-         <curve color="#1ac938" name="/ns/legs/state/present/point_bl/[x;y]" curve_y="/ns/legs/state/present/point_bl/y" curve_x="/ns/legs/state/present/point_bl/x"/>
-         <curve color="#ff7f0e" name="/ns/legs/state/present/point_br/[x;y]" curve_y="/ns/legs/state/present/point_br/y" curve_x="/ns/legs/state/present/point_br/x"/>
-         <curve color="#f14cc1" name="/ns/legs/state/present/point_fl/[x;y]" curve_y="/ns/legs/state/present/point_fl/y" curve_x="/ns/legs/state/present/point_fl/x"/>
-         <curve color="#9467bd" name="/ns/legs/state/present/point_fr/[x;y]" curve_y="/ns/legs/state/present/point_fr/y" curve_x="/ns/legs/state/present/point_fr/x"/>
+         <curve curve_y="/ns/legs/point/leg_bl/y" curve_x="/ns/legs/point/leg_bl/x" color="#17becf" name="/ns/legs/point/leg_bl/[x;y]"/>
+         <curve curve_y="/ns/legs/point/leg_br/y" curve_x="/ns/legs/point/leg_br/x" color="#bcbd22" name="/ns/legs/point/leg_br/[x;y]"/>
+         <curve curve_y="/ns/legs/point/leg_fl/y" curve_x="/ns/legs/point/leg_fl/x" color="#1f77b4" name="/ns/legs/point/leg_fl/[x;y]"/>
+         <curve curve_y="/ns/legs/point/leg_fr/y" curve_x="/ns/legs/point/leg_fr/x" color="#d62728" name="/ns/legs/point/leg_fr/[x;y]"/>
+         <curve curve_y="/ns/legs/state/present/point_bl/y" curve_x="/ns/legs/state/present/point_bl/x" color="#1ac938" name="/ns/legs/state/present/point_bl/[x;y]"/>
+         <curve curve_y="/ns/legs/state/present/point_br/y" curve_x="/ns/legs/state/present/point_br/x" color="#ff7f0e" name="/ns/legs/state/present/point_br/[x;y]"/>
+         <curve curve_y="/ns/legs/state/present/point_fl/y" curve_x="/ns/legs/state/present/point_fl/x" color="#f14cc1" name="/ns/legs/state/present/point_fl/[x;y]"/>
+         <curve curve_y="/ns/legs/state/present/point_fr/y" curve_x="/ns/legs/state/present/point_fr/x" color="#9467bd" name="/ns/legs/state/present/point_fr/[x;y]"/>
         </plot>
        </DockArea>
        <DockArea name="...">
-        <plot mode="XYPlot" flip_x="false" flip_y="false" style="Lines">
-         <range top="-0.033231" bottom="-0.133220" left="-0.084107" right="0.084197"/>
+        <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+         <range left="-0.115498" top="-0.009073" bottom="-0.146306" right="0.115498"/>
          <limitY/>
-         <curve color="#bcbd22" name="/ns/legs/point/leg_fr/[y;z]" curve_y="/ns/legs/point/leg_fr/z" curve_x="/ns/legs/point/leg_fr/y"/>
-         <curve color="#1f77b4" name="/ns/legs/state/present/point_fr/[y;z]" curve_y="/ns/legs/state/present/point_fr/z" curve_x="/ns/legs/state/present/point_fr/y"/>
-         <curve color="#17becf" name="/ns/legs/point/leg_br/[y;z]" curve_y="/ns/legs/point/leg_br/z" curve_x="/ns/legs/point/leg_br/y"/>
-         <curve color="#bcbd22" name="/ns/legs/state/present/point_br/[y;z]" curve_y="/ns/legs/state/present/point_br/z" curve_x="/ns/legs/state/present/point_br/y"/>
+         <curve curve_y="/ns/legs/point/leg_fr/z" curve_x="/ns/legs/point/leg_fr/y" color="#bcbd22" name="/ns/legs/point/leg_fr/[y;z]"/>
+         <curve curve_y="/ns/legs/state/present/point_fr/z" curve_x="/ns/legs/state/present/point_fr/y" color="#1f77b4" name="/ns/legs/state/present/point_fr/[y;z]"/>
+         <curve curve_y="/ns/legs/point/leg_br/z" curve_x="/ns/legs/point/leg_br/y" color="#17becf" name="/ns/legs/point/leg_br/[y;z]"/>
+         <curve curve_y="/ns/legs/state/present/point_br/z" curve_x="/ns/legs/state/present/point_br/y" color="#bcbd22" name="/ns/legs/state/present/point_br/[y;z]"/>
         </plot>
        </DockArea>
       </DockSplitter>
-      <DockSplitter count="2" sizes="0.500312;0.499688" orientation="-">
+      <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
        <DockArea name="...">
-        <plot mode="XYPlot" flip_x="false" flip_y="false" style="Lines">
-         <range top="-0.039916" bottom="-0.140066" left="-0.084205" right="0.084132"/>
+        <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+         <range left="-0.115555" top="-0.009837" bottom="-0.147104" right="0.115498"/>
          <limitY/>
-         <curve color="#d62728" name="/ns/legs/point/leg_fr/[x;z]" curve_y="/ns/legs/point/leg_fr/z" curve_x="/ns/legs/point/leg_fr/x"/>
-         <curve color="#1ac938" name="/ns/legs/state/present/point_fr/[x;z]" curve_y="/ns/legs/state/present/point_fr/z" curve_x="/ns/legs/state/present/point_fr/x"/>
-         <curve color="#1f77b4" name="/ns/legs/point/leg_fl/[x;z]" curve_y="/ns/legs/point/leg_fl/z" curve_x="/ns/legs/point/leg_fl/x"/>
-         <curve color="#d62728" name="/ns/legs/state/present/point_fl/[x;z]" curve_y="/ns/legs/state/present/point_fl/z" curve_x="/ns/legs/state/present/point_fl/x"/>
+         <curve curve_y="/ns/legs/point/leg_fr/z" curve_x="/ns/legs/point/leg_fr/x" color="#d62728" name="/ns/legs/point/leg_fr/[x;z]"/>
+         <curve curve_y="/ns/legs/state/present/point_fr/z" curve_x="/ns/legs/state/present/point_fr/x" color="#1ac938" name="/ns/legs/state/present/point_fr/[x;z]"/>
+         <curve curve_y="/ns/legs/point/leg_fl/z" curve_x="/ns/legs/point/leg_fl/x" color="#1f77b4" name="/ns/legs/point/leg_fl/[x;z]"/>
+         <curve curve_y="/ns/legs/state/present/point_fl/z" curve_x="/ns/legs/state/present/point_fl/x" color="#d62728" name="/ns/legs/state/present/point_fl/[x;z]"/>
         </plot>
        </DockArea>
        <DockArea name="...">
-        <plot mode="TimeSeries" flip_x="false" flip_y="false" style="Lines">
-         <range top="1.000000" bottom="0.000000" left="0.000000" right="1.000000"/>
+        <plot flip_x="false" flip_y="false" style="Lines" mode="TimeSeries">
+         <range left="0.000000" top="1.000000" bottom="0.000000" right="1.000000"/>
          <limitY/>
         </plot>
        </DockArea>
@@ -53,14 +53,198 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <currentTabIndex index="0"/>
+  <Tab tab_name="leg_fl" containers="1">
+   <Container>
+    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.766376" bottom="-0.818532" right="1616.727457"/>
+        <limitY/>
+        <curve color="#1f77b4" name="/ns/legs/state/goal/angles_fl[0]"/>
+        <curve color="#d62728" name="/ns/legs/state/present/angles_fl[0]"/>
+        <curve color="#1ac938" name="/ns/legs/state/target/angles_fl[0]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.644771" bottom="-0.213722" right="1616.727457"/>
+        <limitY/>
+        <curve color="#ff7f0e" name="/ns/legs/state/goal/angles_fl[1]"/>
+        <curve color="#f14cc1" name="/ns/legs/state/present/angles_fl[1]"/>
+        <curve color="#9467bd" name="/ns/legs/state/target/angles_fl[1]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="2.191215" bottom="1.066960" right="1616.727457"/>
+        <limitY/>
+        <curve color="#17becf" name="/ns/legs/state/goal/angles_fl[2]"/>
+        <curve color="#bcbd22" name="/ns/legs/state/present/angles_fl[2]"/>
+        <curve color="#1f77b4" name="/ns/legs/state/target/angles_fl[2]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+        <range left="-0.134720" top="0.111549" bottom="0.046435" right="-0.024748"/>
+        <limitY/>
+        <curve curve_y="/ns/legs/state/goal/point_fl/y" curve_x="/ns/legs/state/goal/point_fl/x" color="#ff7f0e" name="/ns/legs/state/goal/point_fl/[x;y]"/>
+        <curve curve_y="/ns/legs/state/present/point_fl/y" curve_x="/ns/legs/state/present/point_fl/x" color="#f14cc1" name="/ns/legs/state/present/point_fl/[x;y]"/>
+        <curve curve_y="/ns/legs/state/target/point_fl/y" curve_x="/ns/legs/state/target/point_fl/x" color="#9467bd" name="/ns/legs/state/target/point_fl/[x;y]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="leg_fr" containers="1">
+   <Container>
+    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.818378" bottom="-0.760088" right="1616.727457"/>
+        <limitY/>
+        <curve color="#17becf" name="/ns/legs/state/goal/angles_fr[0]"/>
+        <curve color="#d62728" name="/ns/legs/state/present/angles_fr[0]"/>
+        <curve color="#f14cc1" name="/ns/legs/state/target/angles_fr[0]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.643313" bottom="-0.218401" right="1616.727457"/>
+        <limitY/>
+        <curve color="#bcbd22" name="/ns/legs/state/goal/angles_fr[1]"/>
+        <curve color="#1ac938" name="/ns/legs/state/present/angles_fr[1]"/>
+        <curve color="#9467bd" name="/ns/legs/state/target/angles_fr[1]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="2.013747" bottom="1.248994" right="1616.727457"/>
+        <limitY/>
+        <curve color="#1f77b4" name="/ns/legs/state/goal/angles_fr[2]"/>
+        <curve color="#ff7f0e" name="/ns/legs/state/present/angles_fr[2]"/>
+        <curve color="#17becf" name="/ns/legs/state/target/angles_fr[2]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+        <range left="0.017140" top="0.111675" bottom="0.041262" right="0.136062"/>
+        <limitY/>
+        <curve curve_y="/ns/legs/state/goal/point_fr/y" curve_x="/ns/legs/state/goal/point_fr/x" color="#1f77b4" name="/ns/legs/state/goal/point_fr/[x;y]"/>
+        <curve curve_y="/ns/legs/state/present/point_fr/y" curve_x="/ns/legs/state/present/point_fr/x" color="#d62728" name="/ns/legs/state/present/point_fr/[x;y]"/>
+        <curve curve_y="/ns/legs/state/target/point_fr/y" curve_x="/ns/legs/state/target/point_fr/x" color="#1ac938" name="/ns/legs/state/target/point_fr/[x;y]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="leg_bl" containers="1">
+   <Container>
+    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.789962" bottom="-0.819107" right="1616.727457"/>
+        <limitY/>
+        <curve color="#ff7f0e" name="/ns/legs/state/goal/angles_bl[0]"/>
+        <curve color="#f14cc1" name="/ns/legs/state/present/angles_bl[0]"/>
+        <curve color="#9467bd" name="/ns/legs/state/target/angles_bl[0]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.643275" bottom="-0.216828" right="1616.727457"/>
+        <limitY/>
+        <curve color="#9467bd" name="/ns/legs/state/goal/angles_bl[1]"/>
+        <curve color="#17becf" name="/ns/legs/state/present/angles_bl[1]"/>
+        <curve color="#17becf" name="/ns/legs/state/target/angles_bl[1]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="2.192788" bottom="1.066922" right="1616.727457"/>
+        <limitY/>
+        <curve color="#bcbd22" name="/ns/legs/state/goal/angles_bl[2]"/>
+        <curve color="#1f77b4" name="/ns/legs/state/present/angles_bl[2]"/>
+        <curve color="#bcbd22" name="/ns/legs/state/target/angles_bl[2]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Lines" mode="XYPlot">
+        <range left="-0.133017" top="-0.048504" bottom="-0.111498" right="-0.026982"/>
+        <limitY/>
+        <curve curve_y="/ns/legs/state/goal/point_bl/y" curve_x="/ns/legs/state/goal/point_bl/x" color="#d62728" name="/ns/legs/state/goal/point_bl/[x;y]"/>
+        <curve curve_y="/ns/legs/state/present/point_bl/y" curve_x="/ns/legs/state/present/point_bl/x" color="#1ac938" name="/ns/legs/state/present/point_bl/[x;y]"/>
+        <curve curve_y="/ns/legs/state/target/point_bl/y" curve_x="/ns/legs/state/target/point_bl/x" color="#ff7f0e" name="/ns/legs/state/target/point_bl/[x;y]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="leg_br" containers="1">
+   <Container>
+    <DockSplitter sizes="0.5;0.5" count="2" orientation="-">
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.819874" bottom="-0.821408" right="1616.727457"/>
+        <limitY/>
+        <curve color="#f14cc1" name="/ns/legs/state/goal/angles_br[0]"/>
+        <curve color="#9467bd" name="/ns/legs/state/present/angles_br[0]"/>
+        <curve color="#17becf" name="/ns/legs/state/target/angles_br[0]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="0.643198" bottom="-0.213683" right="1616.727457"/>
+        <limitY/>
+        <curve color="#bcbd22" name="/ns/legs/state/goal/angles_br[1]"/>
+        <curve color="#1f77b4" name="/ns/legs/state/present/angles_br[1]"/>
+        <curve color="#d62728" name="/ns/legs/state/target/angles_br[1]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="Steps" mode="TimeSeries">
+        <range left="1609.727916" top="2.192788" bottom="1.066922" right="1616.727457"/>
+        <limitY/>
+        <curve color="#1ac938" name="/ns/legs/state/goal/angles_br[2]"/>
+        <curve color="#ff7f0e" name="/ns/legs/state/present/angles_br[2]"/>
+        <curve color="#f14cc1" name="/ns/legs/state/target/angles_br[2]"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot flip_x="false" flip_y="false" style="LinesAndDots" mode="XYPlot">
+        <range left="0.026982" top="-0.048504" bottom="-0.111498" right="0.133016"/>
+        <limitY/>
+        <curve curve_y="/ns/legs/state/goal/point_br/y" curve_x="/ns/legs/state/goal/point_br/x" color="#bcbd22" name="/ns/legs/state/goal/point_br/[x;y]"/>
+        <curve curve_y="/ns/legs/state/present/point_br/y" curve_x="/ns/legs/state/present/point_br/x" color="#1f77b4" name="/ns/legs/state/present/point_br/[x;y]"/>
+        <curve curve_y="/ns/legs/state/target/point_br/y" curve_x="/ns/legs/state/target/point_br/x" color="#d62728" name="/ns/legs/state/target/point_br/[x;y]"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="1"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <parameters time_axis="" delimiter="0"/>
+   <parameters delimiter="0" time_axis=""/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS2 bags">
@@ -78,7 +262,7 @@
    <max_array_size value="100"/>
    <boolean_strings_to_number value="true"/>
    <remove_suffix_from_strings value="true"/>
-   <selected_topics value="/ns/dynamixel/state/goal;/ns/dynamixel/state/present;/ns/legs/point;/ns/legs/state/goal;/ns/legs/state/present"/>
+   <selected_topics value="/ns/debug;/ns/dynamixel/state/goal;/ns/dynamixel/state/present;/ns/legs/point;/ns/legs/state/goal;/ns/legs/state/present;/ns/legs/state/target"/>
   </plugin>
   <plugin ID="UDP Server"/>
   <plugin ID="WebSocket Server"/>

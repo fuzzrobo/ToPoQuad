@@ -1,6 +1,8 @@
 /ns/leg_node:
     ros__parameters:
+        # control_mode: "velocity"
         control_mode: "velocity_current"
+        # control_mode: "position"
         outer_gain:
           p: 9.0
           i: 0.0
@@ -9,7 +11,7 @@
           vel_p: 1000.0
           pos_p: 800.0
         overshoot: 10.0
-        deadband: 2.0
+        deadband: 3.0
 
 /ns/neck_node:
     ros__parameters:

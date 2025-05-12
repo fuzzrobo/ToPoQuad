@@ -6,6 +6,7 @@ using std::string;
 class LegNode : public rclcpp::Node {
     rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
     rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_, leg_state_t_pub_;
+    // rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
 
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>::SharedPtr leg_point_sub_;
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegAngle>::SharedPtr leg_angle_sub_;
@@ -19,9 +20,16 @@ class LegNode : public rclcpp::Node {
     Leg target_leg_br_, goal_leg_br_, present_leg_br_;
     Leg target_leg_bl_, goal_leg_bl_, present_leg_bl_;
 
+    enum ControlMode{
+        MODE_VELOCITY,
+        MODE_VELOCITY_SAFE,
+        MODE_POSITION
+    };
+
     map<string, double> gain;
     double overshoot_;
     double deadband_;
+    ControlMode control_mode_;
 
    public:
     LegNode()
@@ -53,6 +61,13 @@ class LegNode : public rclcpp::Node {
         target_leg_bl_.initialize(Joint{ids_bl[0], +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{ids_bl[1], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{ids_bl[2], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
+
+        this->declare_parameter<string>("control_mode", "position");
+        auto mode_str = this->get_parameter("control_mode").as_string();
+             if (mode_str == "velocity"         || mode_str == "vel"   ) control_mode_ = MODE_VELOCITY;
+        else if (mode_str == "position"         || mode_str == "pos"   ) control_mode_ = MODE_POSITION;
+        else if (mode_str == "velocity_current" || mode_str == "velcur") control_mode_ = MODE_VELOCITY_SAFE;
+        else RCLCPP_ERROR(get_logger(), "Invalid control mode [velocity, position, velocity_current]");
 
         this->declare_parameter<double>("outer_gain.p", 5.0);
         this->declare_parameter<double>("outer_gain.i", 0.0);
@@ -86,6 +101,7 @@ class LegNode : public rclcpp::Node {
         leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/present", 10);
         leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/goal", 10);
         leg_state_t_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/target", 10);
+        // joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("jointstate/legs", 10);
 
         // Subscribers
         leg_point_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>(
@@ -143,7 +159,13 @@ class LegNode : public rclcpp::Node {
         if (!isnan(angle_br[0]) && !isnan(angle_br[1]) && !isnan(angle_br[2])) target_leg_br_.SetJointAngles(angle_br);
         auto angle_bl = leg_ik(msg->leg_bl, target_leg_bl_.fixed_pose_, -1);
         if (!isnan(angle_bl[0]) && !isnan(angle_bl[1]) && !isnan(angle_bl[2])) target_leg_bl_.SetJointAngles(angle_bl);
-        BroadcastDynamixelCommand();
+        // sensor_msgs::msg::JointState joint_msg;
+        switch (control_mode_) {
+            case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
+            case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
+            case MODE_POSITION: 
+            default:                 BroadcastDynamixelCommand_PositionBase(); break;
+        }
         BroadcastLegState("target");
     }
     void leg_angle_cb(const topoquad_msgs::msg::QuadRobotCmdLegAngle::SharedPtr msg) {
@@ -151,7 +173,12 @@ class LegNode : public rclcpp::Node {
         if (msg->angles_fl.size() > 1) target_leg_fl_.SetJointAngles(msg->angles_fl);
         if (msg->angles_br.size() > 1) target_leg_br_.SetJointAngles(msg->angles_br);
         if (msg->angles_bl.size() > 1) target_leg_bl_.SetJointAngles(msg->angles_bl);
-        BroadcastDynamixelCommand();
+        switch (control_mode_) {
+            case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
+            case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
+            case MODE_POSITION: 
+            default:                 BroadcastDynamixelCommand_PositionBase(); break;
+        }
         BroadcastLegState("target");
 
     }
@@ -209,7 +236,7 @@ class LegNode : public rclcpp::Node {
         }
     }
 
-    void BroadcastDynamixelCommand() {
+    void BroadcastDynamixelCommand_VelocityPosBase() {
         static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
         auto now = this->get_clock()->now();
@@ -243,9 +270,6 @@ class LegNode : public rclcpp::Node {
             ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
             ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
             ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
-            // ctrl_msg.velocity_deg_s.push_back((vel_hy * rad2deg));
-            // ctrl_msg.velocity_deg_s.push_back((vel_hp * rad2deg));
-            // ctrl_msg.velocity_deg_s.push_back((vel_kp * rad2deg));
 
             ctrl_msg.position_deg.push_back(pos_hy * rad2deg);
             ctrl_msg.position_deg.push_back(pos_hp * rad2deg);
@@ -256,19 +280,97 @@ class LegNode : public rclcpp::Node {
             ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
             ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
             ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
-            // ctrl_msg.profile_acc_deg_ss.push_back(0);
-            // ctrl_msg.profile_acc_deg_ss.push_back(0);
-            // ctrl_msg.profile_acc_deg_ss.push_back(0);
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
 
             diff_hy_pre[i] = diff_hy;
             diff_hp_pre[i] = diff_hp;
             diff_kp_pre[i] = diff_kp;
         }
-        if (ctrl_msg.id_list.size() != 0) {
-            prev_cmd_time_ = now;
-            dyn_cmd_pub_->publish(dyn_msg);
-        }
+        
+        prev_cmd_time_ = now;
+        dyn_cmd_pub_->publish(dyn_msg);
     }
+
+    void BroadcastDynamixelCommand_VelocityBase(){
+        static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
+        static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
+        auto now = this->get_clock()->now();
+
+        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        auto& ctrl_msg = dyn_msg.velocity_control;
+        static double diff_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double diff_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        for (int i = 0; i < 4; i++) {
+            auto& tleg = targets[i];
+            auto& pleg = presents[i];
+            auto Dt = (now.seconds() - pleg.get().updated_time_);
+
+            auto tar_ang_hy = tleg.get().hip_yaw_.servo_angle_;
+            auto tar_ang_hp = tleg.get().hip_pitch_.servo_angle_;
+            auto tar_ang_kp = tleg.get().knee_pitch_.servo_angle_;
+            auto now_ang_hy = pleg.get().hip_yaw_.servo_angle_+ Dt * pleg.get().hip_yaw_.servo_velocity_;
+            auto now_ang_hp = pleg.get().hip_pitch_.servo_angle_+ Dt * pleg.get().hip_pitch_.servo_velocity_;
+            auto now_ang_kp = pleg.get().knee_pitch_.servo_angle_+ Dt * pleg.get().knee_pitch_.servo_velocity_;
+            auto diff_hy = tar_ang_hy - now_ang_hy;
+            auto diff_hp = tar_ang_hp - now_ang_hp;
+            auto diff_kp = tar_ang_kp - now_ang_kp;
+            auto vel_hy = fabs(diff_hy)<deadband_ ? 0.0 : gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
+            auto vel_hp = fabs(diff_hp)<deadband_ ? 0.0 : gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
+            auto vel_kp = fabs(diff_kp)<deadband_ ? 0.0 : gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
+
+            ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
+            ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
+            ctrl_msg.velocity_deg_s.push_back((vel_hy * rad2deg));
+            ctrl_msg.velocity_deg_s.push_back((vel_hp * rad2deg));
+            ctrl_msg.velocity_deg_s.push_back((vel_kp * rad2deg));
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
+            ctrl_msg.profile_acc_deg_ss.push_back(0);
+
+            diff_hy_pre[i] = diff_hy;
+            diff_hp_pre[i] = diff_hp;
+            diff_kp_pre[i] = diff_kp;
+        }
+        
+        prev_cmd_time_ = now;
+        dyn_cmd_pub_->publish(dyn_msg);
+    }
+
+    void BroadcastDynamixelCommand_PositionBase(){
+        static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
+        auto now = this->get_clock()->now();
+
+        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        auto& ctrl_msg = dyn_msg.current_base_position_control;
+        for (int i = 0; i < 4; i++) {
+            auto& tleg = targets[i];
+
+            auto ang_hy = tleg.get().hip_yaw_.servo_angle_;
+            auto ang_hp = tleg.get().hip_pitch_.servo_angle_;
+            auto ang_kp = tleg.get().knee_pitch_.servo_angle_;
+
+            ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
+            ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
+            ctrl_msg.position_deg.push_back(ang_hy * rad2deg);  // 真の目標値より少し先を目標値にすることで，位置制御特融の加減速の連続を抑制したい．が，効いているのかよくわからん．
+            ctrl_msg.position_deg.push_back(ang_hp * rad2deg);
+            ctrl_msg.position_deg.push_back(ang_kp * rad2deg);
+            ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
+            ctrl_msg.profile_acc_deg_ss.push_back(5000);
+            ctrl_msg.profile_acc_deg_ss.push_back(5000);
+            ctrl_msg.profile_acc_deg_ss.push_back(5000);
+        }
+
+        prev_cmd_time_ = now;
+        dyn_cmd_pub_->publish(dyn_msg);
+    }
+
 
     void BroadcastLegState(std::string flag) {
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};

@@ -2,15 +2,15 @@
 import rclpy
 from rclpy.node import Node
 
-from sensor_msgs.msg import Joy
 from topoquad_msgs.msg import QuadRobotCmdNeckAngle, QuadRobotCmdLegPoint
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Float64MultiArray
 
 from math import pi, sin, cos, sqrt, hypot
 
 # Static
 r = 0.025
-s = 0.045
+s = 0.03
 h = 0.025
 base_radius = 0.080
 base_height = 0.100
@@ -29,10 +29,14 @@ class TeleopNode(Node):
         self.phase_r = 0.0
         self.phase_diff =  4.0 / 1000 
         self.twist = None
+        self.vx  = 0.0
+        self.vy  = 0.0
+        self.rot = 0.0
         
         # Publishers
         self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
         self.leg_point_pub_ = self.create_publisher(QuadRobotCmdLegPoint, 'legs/point', 10)
+        self.debug_pub_ = self.create_publisher(Float64MultiArray, 'debug', 10)
         
         # Subscribers
         self.vel_sub_ = self.create_subscription(Twist, 'cmd_vel', self.vel_cb, 10)
@@ -51,88 +55,72 @@ class TeleopNode(Node):
             self.twist = Twist()
 
         # Legs
-        rot = clamp(-self.twist.angular.z, -1.5, 1.5)
-        vx_  = clamp(-self.twist.linear.y, -1.8, 1.8)
-        vy_  = clamp( self.twist.linear.x, -1.8, 1.8)
-        vx = vx_ if vx_==0 else sqrt(abs(vx_)) * vx_ / abs(vx_)
-        vy = vy_ if vy_==0 else sqrt(abs(vy_)) * vy_ / abs(vy_)
+        vx_ = clamp(-self.twist.linear.y, -1.8, 1.8)
+        vy_ = clamp( self.twist.linear.x, -1.8, 1.8)
+        rot_= clamp( self.twist.angular.z, -1.5, 1.5)
+        vx  = vx_ if vx_==0 else sqrt(abs(vx_)) * vx_ / abs(vx_)
+        vy  = vy_ if vy_==0 else sqrt(abs(vy_)) * vy_ / abs(vy_)
+        rot = rot_ if rot_==0 else rot_ * abs(rot_) / hypot(rot_, 2*hypot(vx, vy))  
         point = QuadRobotCmdLegPoint()
-        if rot != 0:
-            self.get_logger().info(f"rot: {rot}", throttle_duration_sec = 0.5)
-            self.move_rotational(point, rot)
-        else:
-            self.get_logger().info(f"vx: {vx}, vy: {vy}", throttle_duration_sec = 0.5)
-            self.move_parallel(point, vx, vy)
+        self.move_pal_rot(point, vx, vy, rot)
         self.leg_point_pub_.publish(point)
     
-    def move_parallel(self, point, vx, vy):
+    def move_pal_rot(self, point, vx_, vy_, rot_):
+        vx= 0.95*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/100
+        vy= 0.95*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/100
+        rot= 0.95*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/100
+        V = max(max(0.01, hypot(vx, vy)), hypot(vx_, vy_))
+        R = max(max(0.01, abs(rot)), abs(rot_))
+        rot_dir = -1 if rot>0 else 1
+        self.get_logger().info(f"vx: {vx}, vy: {vy}, rot: {rot_dir}, rot/R: {-clamp(-rot/R,-1, 1)}", throttle_duration_sec = 0.5)
+
         body_motion = lambda time: [
-            1.0 * r*cos(2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
-            1.0 * r*sin(2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
+            r * cos(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
+            r * sin(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
             -0.01
         ] # 重心位置
-        leg_motion = lambda time: [ # 足先の軌道, 足先ベクトルを返すthetaの関数として歩行軌道を定義        
-            vx * s*cos(2*pi*time) / (1 if hypot(vx, vy) < 1 else hypot(vx, vy)), # [vx, vy]ベクトルの正規化
-            vy * s*cos(2*pi*time) / (1 if hypot(vx, vy) < 1 else hypot(vx, vy)), # [vx, vy]ベクトルの正規化
-            h * min(sin(2*pi*time), 0) # 半円状の動作を作り，円弧となるtime \in [0.5, 1]が遊脚期 [0, 0.5]が支持脚期とする。
-        ]
+        leg_motion_paralell = lambda time: [ # 足先の軌道, 足先ベクトルを返すthetaの関数として歩行軌道を定義        
+            s * cos(2*pi*time) * vx / V, # [vx, vy]ベクトルの正規化
+            s * cos(2*pi*time) * vy / V, # [vx, vy]ベクトルの正規化
+            h * min(sin(2*pi*time), 0.0)
+        ] # 前進
+        leg_motion_rotation = lambda time: [ # 足先の軌道, 足先ベクトルを返すtimeの関数として歩行軌道を定義
+            +s*cos(2*pi*time) * rot, 
+            -s*cos(2*pi*time) * rot, 
+            h * min(sin(2*pi*time), 0.0)
+        ] # 旋回
         a = 0.8 # 支持脚期の時間的な割有
         time_traj = (lambda phase:max(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))) 
                     if a>0.5 else min(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))))
-        
-        phase = norm(self.phase_p - hypot(vx, vy)*self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
-        x0, y0, z0 = body_motion((phase+2/4+1/16))
-        x, y, z  =  leg_motion( time_traj(phase-0/4) )
-        point.leg_fr.x = +base_radius - x0 - x # 右＋　左足なので+
-        point.leg_fr.y = +base_radius - y0 - y # 前＋
-        point.leg_fr.z = -base_height - z0 - z # 上＋
-        x, y, z  =  leg_motion( time_traj(phase-1/4) )
-        point.leg_fl.x = -base_radius - x0 - x # 右＋　左足なので-
-        point.leg_fl.y = +base_radius - y0 - y # 前＋
-        point.leg_fl.z = -base_height - z0 - z # 上＋
-        x, y, z  =  leg_motion( time_traj(phase-3/4) )
-        point.leg_br.x = +base_radius - x0 - x # 右＋　右足なので+
-        point.leg_br.y = -base_radius - y0 - y # 前＋
-        point.leg_br.z = -base_height - z0 - z # 上＋
-        x, y, z  =  leg_motion( time_traj(phase-2/4) )
-        point.leg_bl.x = -base_radius - x0 - x # 右＋　左足なので-
-        point.leg_bl.y = -base_radius - y0 - y # 前＋
-        point.leg_bl.z = -base_height - z0 - z # 上＋
+
+        phase = norm(self.phase_p - hypot(rot, hypot(vx, vy))*self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
+        x0, y0, z0 = body_motion((phase+(0.5/4+1/16)*rot_dir))
+        xp, yp, zp  =  leg_motion_paralell( time_traj(phase-1.5/4*rot_dir) )
+        xr, yr, zr  =  leg_motion_rotation( time_traj(phase-1.5/4*rot_dir*abs(rot)/R) )
+        # self.debug_pub_.publish(Float64MultiArray(data=[(-zp * V - zr * R) / hypot(R, V)] ))
+        point.leg_fr.x = +base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので+
+        point.leg_fr.y = +base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
+        point.leg_fr.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        xp, yp, zp  =  leg_motion_paralell( time_traj(phase+1.5/4*rot_dir) )
+        xr, yr, zr  =  leg_motion_rotation( time_traj(phase+1.5/4*rot_dir*abs(rot)/R) )
+        point.leg_fl.x = -base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので-
+        point.leg_fl.y = +base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
+        point.leg_fl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        xp, yp, zp  =  leg_motion_paralell( time_traj(phase-0.5/4*rot_dir) )
+        xr, yr, zr  =  leg_motion_rotation( time_traj(phase-0.5/4*rot_dir*abs(rot)/R) )
+        point.leg_br.x = +base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　右足なので+
+        point.leg_br.y = -base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
+        point.leg_br.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        xp, yp, zp  =  leg_motion_paralell( time_traj(phase+0.5/4*rot_dir) )
+        xr, yr, zr  =  leg_motion_rotation( time_traj(phase+0.5/4*rot_dir*abs(rot)/R) )
+        point.leg_bl.x = -base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　左足なので-
+        point.leg_bl.y = -base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
+        point.leg_bl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
 
         self.phase_p = phase
-        return point
-
-    def move_rotational(self, point, rot): 
-        body_motion = lambda time: [ 0.0, 0.0, 0.0 ] # 重心位置
-        leg_motion = lambda time: [ # 足先の軌道, 足先ベクトルを返すtimeの関数として歩行軌道を定義
-            +rot*s*cos(2*pi*time), 
-            -rot*s*cos(2*pi*time), 
-            h * min(sin(2*pi*time), 0.0) # 0~piの範囲が遊脚期
-        ]
-        a = 3/4 # 支持脚期の割有
-        time_traj = (lambda phase:max(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))) 
-                    if a>0.5 else min(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))))
-
-        phase = norm(self.phase_r + self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
-        x0, y0, z0 = body_motion((phase))
-        x, y, z  =  leg_motion( time_traj(phase - 0/4*(-1 if rot>0 else 1)) )
-        point.leg_fl.x = -base_radius - x0 + x
-        point.leg_fl.y = +base_radius - y0 - y
-        point.leg_fl.z = -base_height - z0 - z
-        x, y, z  =  leg_motion( time_traj(phase - 3/4*(-1 if rot>0 else 1)) )
-        point.leg_fr.x =  base_radius - x0 + x
-        point.leg_fr.y = +base_radius - y0 + y
-        point.leg_fr.z = -base_height - z0 - z
-        x, y, z  =  leg_motion( time_traj(phase - 1/4*(-1 if rot>0 else 1)) )
-        point.leg_bl.x = -base_radius - x0 - x
-        point.leg_bl.y = -base_radius - y0 - y
-        point.leg_bl.z = -base_height - z0 - z
-        x, y, z  =  leg_motion( time_traj(phase - 2/4*(-1 if rot>0 else 1)) )
-        point.leg_br.x = +base_radius - x0 - x
-        point.leg_br.y = -base_radius - y0 + y
-        point.leg_br.z = -base_height - z0 - z
-        
-        self.phase_r = phase
+        self.vx = vx 
+        self.vy = vy 
+        self.rot= rot
         return point
 
 def norm(phase):
