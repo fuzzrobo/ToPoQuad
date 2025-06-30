@@ -12,8 +12,8 @@ class TeleopJoyXboxNode(Node):
     def __init__(self):
         super().__init__('teleop_joy_xbox')
         # param
-        self.declare_parameter('timer_period', 0.05)
-        self.declare_parameter('linear_v', 1.0)
+        self.declare_parameter('timer_period', 1.0)
+        self.declare_parameter('linear_v', 0.2)
         self.declare_parameter('angular_w', 3.14)
         self.declare_parameter('angle_pan_max', 1.57)
         self.declare_parameter('angle_tilt_max', 0.78)
@@ -35,17 +35,18 @@ class TeleopJoyXboxNode(Node):
 
     def timer_cb(self):
         diff = time.time() - self.joy_rx_time
+        cmd = Twist()
         if self.joy is not None and (diff < 1.0):
-            cmd = Twist()
             cmd.linear.x = -self.joy.axes[0] * self.linear_v
             cmd.linear.y =  self.joy.axes[1] * self.linear_v
             cmd.angular.z = self.angular_w if self.joy.buttons[4] else (-self.angular_w if self.joy.buttons[5] else 0.0)
             self.cmd_pub_.publish(cmd)
             
             neck_cmd = QuadRobotCmdNeckAngle()
-            neck_cmd.angle_pan = -self.joy.axes[3] * self.angle_pan_max
+            neck_cmd.angle_pan =  self.joy.axes[3] * self.angle_pan_max
             neck_cmd.angle_tilt = self.joy.axes[4] * self.angle_tilt_max
-            self.neck_pub_.publish(neck_cmd)
+
+        self.neck_pub_.publish(neck_cmd)
     
     def joy_cb(self, msg):
         self.joy = msg

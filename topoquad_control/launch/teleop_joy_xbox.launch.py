@@ -10,6 +10,13 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
+    node_keyboard = Node(
+        package="topoquad_control",
+        executable="keyboard_node",
+        namespace='ns',
+        output="both"
+    )
+        
     node_joy = Node(
         package="joy",
         executable="joy_node",
@@ -25,6 +32,7 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
+        node_keyboard,
         node_joy,
         node_teleop_joy_xbox
     ])
