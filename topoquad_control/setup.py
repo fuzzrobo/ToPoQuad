@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+from glob import glob
+import os
 
 package_name = 'topoquad_control'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, glob('launch/*launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,6 +26,7 @@ setup(
              'teleop_node = topoquad_control.teleop_sample:main',
              'keyboard_node = topoquad_control.keyboard_sample:main',
              'walk_node = topoquad_control.walk_sample:main',
+             'teleop_joy_xbox = topoquad_control.teleop_joy_xbox:main',
         ],
     },
 )
