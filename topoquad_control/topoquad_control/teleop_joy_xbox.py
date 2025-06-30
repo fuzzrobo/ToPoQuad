@@ -13,10 +13,10 @@ class TeleopJoyXboxNode(Node):
         super().__init__('teleop_joy_xbox')
         # param
         self.declare_parameter('timer_period', 0.05)
-        self.declare_parameter('linear_v', '1.0')
-        self.declare_parameter('angular_w', '3.14')
-        self.declare_parameter('angle_pan_max', '1.57')
-        self.declare_parameter('angle_tilt_max', '0.78')
+        self.declare_parameter('linear_v', 1.0)
+        self.declare_parameter('angular_w', 3.14)
+        self.declare_parameter('angle_pan_max', 1.57)
+        self.declare_parameter('angle_tilt_max', 0.78)
         
         timer_period = self.get_parameter('timer_period').get_parameter_value().double_value
         self.linear_v = self.get_parameter('linear_v').get_parameter_value().double_value
