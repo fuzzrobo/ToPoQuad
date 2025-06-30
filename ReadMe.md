@@ -32,7 +32,7 @@ $ sudo apt install -y python3-colcon-common-extensions python3-pip
 
 ```bash
 cd ~/ros2_ws/src
-git clone --recursive https://github.com/ROBOTIS-JAPAN-GIT/ToPoQuad.git -b humble-devel
+git clone --recursive git@github.com:fuzzrobo/ToPoQuad.git -b humble-devel
 cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash
 ```
 
