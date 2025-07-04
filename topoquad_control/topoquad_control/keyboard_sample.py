@@ -10,7 +10,7 @@ from math import pi, sin, cos, sqrt, hypot
 
 # Static
 r = 0.025
-s = 0.03
+s = 0.030
 h = 0.025
 base_radius = 0.080
 base_height = 0.100
@@ -27,7 +27,7 @@ class TeleopNode(Node):
         # Variable
         self.phase_p = 0.0
         self.phase_r = 0.0
-        self.phase_diff =  4.0 / 1000 
+        self.phase_diff =  8.0 / 1000 
         self.twist = None
         self.vx  = 0.0
         self.vy  = 0.0
@@ -42,7 +42,7 @@ class TeleopNode(Node):
         self.vel_sub_ = self.create_subscription(Twist, 'cmd_vel', self.vel_cb, 10)
         
         # Timer
-        self.timer = self.create_timer(0.01, self.timer_cb)
+        self.timer = self.create_timer(0.02, self.timer_cb)
     
     def vel_cb(self, msg):
         self.twist = msg
@@ -85,8 +85,8 @@ class TeleopNode(Node):
             h * min(sin(2*pi*time), 0.0)
         ] # 前進
         leg_motion_rotation = lambda time: [ # 足先の軌道, 足先ベクトルを返すtimeの関数として歩行軌道を定義
-            +s*cos(2*pi*time) * rot, 
-            -s*cos(2*pi*time) * rot, 
+            +s*cos(2*pi*time) * rot * 0.8, 
+            -s*cos(2*pi*time) * rot * 0.8, 
             h * min(sin(2*pi*time), 0.0)
         ] # 旋回
         a = 0.8 # 支持脚期の時間的な割有

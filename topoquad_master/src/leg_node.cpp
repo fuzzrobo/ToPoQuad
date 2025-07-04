@@ -247,29 +247,29 @@ class LegNode : public rclcpp::Node {
         static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         for (int i = 0; i < 4; i++) {
-            auto& tleg = targets[i];
-            auto& pleg = presents[i];
-            auto Dt = (now.seconds() - pleg.get().updated_time_);
+            auto& tleg = targets[i].get();
+            auto& pleg = presents[i].get();
+            auto Dt = (now.seconds() - pleg.updated_time_);
 
-            auto tar_ang_hy = tleg.get().hip_yaw_.servo_angle_;
-            auto tar_ang_hp = tleg.get().hip_pitch_.servo_angle_;
-            auto tar_ang_kp = tleg.get().knee_pitch_.servo_angle_;
-            auto now_ang_hy = pleg.get().hip_yaw_.servo_angle_+ Dt * pleg.get().hip_yaw_.servo_velocity_;
-            auto now_ang_hp = pleg.get().hip_pitch_.servo_angle_+ Dt * pleg.get().hip_pitch_.servo_velocity_;
-            auto now_ang_kp = pleg.get().knee_pitch_.servo_angle_+ Dt * pleg.get().knee_pitch_.servo_velocity_;
+            auto tar_ang_hy = tleg.hip_yaw_.servo_angle_;
+            auto tar_ang_hp = tleg.hip_pitch_.servo_angle_;
+            auto tar_ang_kp = tleg.knee_pitch_.servo_angle_;
+            auto now_ang_hy = pleg.hip_yaw_.servo_angle_+ Dt * pleg.hip_yaw_.servo_velocity_;
+            auto now_ang_hp = pleg.hip_pitch_.servo_angle_+ Dt * pleg.hip_pitch_.servo_velocity_;
+            auto now_ang_kp = pleg.knee_pitch_.servo_angle_+ Dt * pleg.knee_pitch_.servo_velocity_;
             auto diff_hy = tar_ang_hy - now_ang_hy;
             auto diff_hp = tar_ang_hp - now_ang_hp;
             auto diff_kp = tar_ang_kp - now_ang_kp;
-            auto vel_hy = fabs(diff_hy)<deadband_ ? 0.0 : gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
-            auto vel_hp = fabs(diff_hp)<deadband_ ? 0.0 : gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
-            auto vel_kp = fabs(diff_kp)<deadband_ ? 0.0 : gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
-            auto pos_hy = fabs(diff_hy)<deadband_ ? tar_ang_hy : (0<diff_hy) ? tar_ang_hy+overshoot_ : tar_ang_hy-overshoot_;
-            auto pos_hp = fabs(diff_hp)<deadband_ ? tar_ang_hp : (0<diff_hp) ? tar_ang_hp+overshoot_ : tar_ang_hp-overshoot_;
-            auto pos_kp = fabs(diff_kp)<deadband_ ? tar_ang_kp : (0<diff_kp) ? tar_ang_kp+overshoot_ : tar_ang_kp-overshoot_;
+            auto vel_hy = fabs(diff_hy)<deadband_ ? 0.0001 : gain["p"] * diff_hy + gain["d"] * (diff_hy-diff_hy_pre[i]);
+            auto vel_hp = fabs(diff_hp)<deadband_ ? 0.0001 : gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
+            auto vel_kp = fabs(diff_kp)<deadband_ ? 0.0001 : gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
+            auto pos_hy = (0<diff_hy) ? tar_ang_hy+overshoot_ : tar_ang_hy-overshoot_;
+            auto pos_hp = (0<diff_hp) ? tar_ang_hp+overshoot_ : tar_ang_hp-overshoot_;
+            auto pos_kp = (0<diff_kp) ? tar_ang_kp+overshoot_ : tar_ang_kp-overshoot_;
 
-            ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.hip_yaw_.id_);
+            ctrl_msg.id_list.push_back(tleg.hip_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.knee_pitch_.id_);
 
             ctrl_msg.position_deg.push_back(pos_hy * rad2deg);
             ctrl_msg.position_deg.push_back(pos_hp * rad2deg);
@@ -277,9 +277,9 @@ class LegNode : public rclcpp::Node {
             ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hy * rad2deg));
             ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_hp * rad2deg));
             ctrl_msg.profile_vel_deg_s.push_back(fabs(vel_kp * rad2deg));
-            ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
-            ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
-            ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.hip_yaw_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.hip_pitch_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.knee_pitch_.servo_current_);
             ctrl_msg.profile_acc_deg_ss.push_back(0);
             ctrl_msg.profile_acc_deg_ss.push_back(0);
             ctrl_msg.profile_acc_deg_ss.push_back(0);
@@ -304,16 +304,16 @@ class LegNode : public rclcpp::Node {
         static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         for (int i = 0; i < 4; i++) {
-            auto& tleg = targets[i];
-            auto& pleg = presents[i];
-            auto Dt = (now.seconds() - pleg.get().updated_time_);
+            auto& tleg = targets[i].get();
+            auto& pleg = presents[i].get();
+            auto Dt = (now.seconds() - pleg.updated_time_);
 
-            auto tar_ang_hy = tleg.get().hip_yaw_.servo_angle_;
-            auto tar_ang_hp = tleg.get().hip_pitch_.servo_angle_;
-            auto tar_ang_kp = tleg.get().knee_pitch_.servo_angle_;
-            auto now_ang_hy = pleg.get().hip_yaw_.servo_angle_+ Dt * pleg.get().hip_yaw_.servo_velocity_;
-            auto now_ang_hp = pleg.get().hip_pitch_.servo_angle_+ Dt * pleg.get().hip_pitch_.servo_velocity_;
-            auto now_ang_kp = pleg.get().knee_pitch_.servo_angle_+ Dt * pleg.get().knee_pitch_.servo_velocity_;
+            auto tar_ang_hy = tleg.hip_yaw_.servo_angle_;
+            auto tar_ang_hp = tleg.hip_pitch_.servo_angle_;
+            auto tar_ang_kp = tleg.knee_pitch_.servo_angle_;
+            auto now_ang_hy = pleg.hip_yaw_.servo_angle_+ Dt * pleg.hip_yaw_.servo_velocity_;
+            auto now_ang_hp = pleg.hip_pitch_.servo_angle_+ Dt * pleg.hip_pitch_.servo_velocity_;
+            auto now_ang_kp = pleg.knee_pitch_.servo_angle_+ Dt * pleg.knee_pitch_.servo_velocity_;
             auto diff_hy = tar_ang_hy - now_ang_hy;
             auto diff_hp = tar_ang_hp - now_ang_hp;
             auto diff_kp = tar_ang_kp - now_ang_kp;
@@ -321,9 +321,9 @@ class LegNode : public rclcpp::Node {
             auto vel_hp = fabs(diff_hp)<deadband_ ? 0.0 : gain["p"] * diff_hp + gain["d"] * (diff_hp-diff_hp_pre[i]);
             auto vel_kp = fabs(diff_kp)<deadband_ ? 0.0 : gain["p"] * diff_kp + gain["d"] * (diff_kp-diff_kp_pre[i]);
 
-            ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.hip_yaw_.id_);
+            ctrl_msg.id_list.push_back(tleg.hip_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.knee_pitch_.id_);
             ctrl_msg.velocity_deg_s.push_back((vel_hy * rad2deg));
             ctrl_msg.velocity_deg_s.push_back((vel_hp * rad2deg));
             ctrl_msg.velocity_deg_s.push_back((vel_kp * rad2deg));
@@ -342,29 +342,71 @@ class LegNode : public rclcpp::Node {
 
     void BroadcastDynamixelCommand_PositionBase(){
         static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
+        static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
+        static auto prev = this->get_clock()->now();
         auto now = this->get_clock()->now();
+        static double dt = 0.01;
+        dt = 0.8 * dt + 0.2 * (now.seconds() - prev.seconds());
+        prev = now;  // ほぼ定数になるはずの値なので，平滑化して扱う．
 
         dynamixel_handler::msg::DxlCommandsX dyn_msg;
         auto& ctrl_msg = dyn_msg.current_base_position_control;
+        static double ang_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double ang_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
+        static double ang_kp_pre[4] = {0.0, 0.0, 0.0, 0.0};
         for (int i = 0; i < 4; i++) {
-            auto& tleg = targets[i];
+            auto& tleg = targets[i].get();
+            auto& pleg = presents[i].get();
 
-            auto ang_hy = tleg.get().hip_yaw_.servo_angle_;
-            auto ang_hp = tleg.get().hip_pitch_.servo_angle_;
-            auto ang_kp = tleg.get().knee_pitch_.servo_angle_;
+            auto tar_ang_hy_pre = ang_hy_pre[i];
+            auto tar_ang_hp_pre = ang_hp_pre[i];
+            auto tar_ang_kp_pre = ang_kp_pre[i];
+            auto tar_ang_hy = ang_hy_pre[i] = tleg.hip_yaw_.servo_angle_;
+            auto tar_ang_hp = ang_hp_pre[i] = tleg.hip_pitch_.servo_angle_;
+            auto tar_ang_kp = ang_kp_pre[i] = tleg.knee_pitch_.servo_angle_;
+            auto now_ang_hy = pleg.hip_yaw_.servo_angle_;
+            auto now_ang_hp = pleg.hip_pitch_.servo_angle_;
+            auto now_ang_kp = pleg.knee_pitch_.servo_angle_;
 
-            ctrl_msg.id_list.push_back(tleg.get().hip_yaw_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().hip_pitch_.id_);
-            ctrl_msg.id_list.push_back(tleg.get().knee_pitch_.id_);
-            ctrl_msg.position_deg.push_back(ang_hy * rad2deg);  // 真の目標値より少し先を目標値にすることで，位置制御特融の加減速の連続を抑制したい．が，効いているのかよくわからん．
-            ctrl_msg.position_deg.push_back(ang_hp * rad2deg);
-            ctrl_msg.position_deg.push_back(ang_kp * rad2deg);
-            ctrl_msg.current_ma.push_back(tleg.get().hip_yaw_.servo_current_);
-            ctrl_msg.current_ma.push_back(tleg.get().hip_pitch_.servo_current_);
-            ctrl_msg.current_ma.push_back(tleg.get().knee_pitch_.servo_current_);
-            ctrl_msg.profile_acc_deg_ss.push_back(5000);
-            ctrl_msg.profile_acc_deg_ss.push_back(5000);
-            ctrl_msg.profile_acc_deg_ss.push_back(5000);
+            ctrl_msg.id_list.push_back(tleg.hip_yaw_.id_);
+            ctrl_msg.id_list.push_back(tleg.hip_pitch_.id_);
+            ctrl_msg.id_list.push_back(tleg.knee_pitch_.id_);
+            ctrl_msg.position_deg.push_back(tar_ang_hy * rad2deg);
+            ctrl_msg.position_deg.push_back(tar_ang_hp * rad2deg);
+            ctrl_msg.position_deg.push_back(tar_ang_kp * rad2deg);
+            ctrl_msg.current_ma.push_back(tleg.hip_yaw_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.hip_pitch_.servo_current_);
+            ctrl_msg.current_ma.push_back(tleg.knee_pitch_.servo_current_);
+            if (i==0){
+                RCLCPP_INFO(get_logger(), "%f, %f, %f, %f", dt, tar_ang_hy_pre, tar_ang_hy, now_ang_hy);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hy- now_ang_hy)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hp- now_ang_hp)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_kp- now_ang_kp)/dt* rad2deg);
+                ctrl_msg.profile_acc_deg_ss.push_back(5000);
+                ctrl_msg.profile_acc_deg_ss.push_back(5000);
+                ctrl_msg.profile_acc_deg_ss.push_back(5000);
+            } else if (i==1){
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hy- now_ang_hy)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hp- now_ang_hp)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_kp- now_ang_kp)/dt* rad2deg);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+            } else if (i==2){
+                ctrl_msg.profile_vel_deg_s.push_back(0);
+                ctrl_msg.profile_vel_deg_s.push_back(0);
+                ctrl_msg.profile_vel_deg_s.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+            } else {
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hy- tar_ang_hy_pre)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_hp- tar_ang_hp_pre)/dt* rad2deg);
+                ctrl_msg.profile_vel_deg_s.push_back((tar_ang_kp- tar_ang_kp_pre)/dt* rad2deg);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+                ctrl_msg.profile_acc_deg_ss.push_back(0);
+            }
         }
 
         prev_cmd_time_ = now;

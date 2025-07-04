@@ -23,7 +23,7 @@ ns:
         init/torque_auto_enable: true # 初期化時に Torque を自動でONにするかどうか
         term/torque_auto_disable: true # 終了時に Torque を自動でOFFにするかどうか
     # デフォルト値の設定
-        default/profile_acc: 50015.0 # deg/s^2
+        default/profile_acc: 0.0 # deg/s^2
         default/profile_vel: 600.0 # deg/s
     # ループの設定
         loop_rate: 150 # メインループの周期
