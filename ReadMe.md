@@ -220,3 +220,38 @@ ros2 run plotjuggler plotjuggler -l ~/topoquad_ws/src/ToPoQuad/plot_config.xml
 ```
 出てくるウィンドウでyesを選択。
 Select ROS message という window では `/ns/legs/point`, `/ns/legs/state/goal`, `/ns/legs/state/present`, の3つを選択してOK.
+
+## その他
+
+### Dynamixel の Baudrate を変えたくなったら
+
+始めに，Raspberry Pi 内の `/topoquad_master/config/dynamixel_unify_baudrate.yaml` の `target_baudrate` を変更する．
+```yml
+/**:
+    ros__parameters:
+    #  指定可能なボーレート
+        # 9600    
+        # 57600   
+        # 115200  
+        # 1000000 
+        # 2000000 
+        # 3000000 
+        # 4000000 
+    # 通信機器の設定
+        device_name: /dev/ttyACM0 # 通信するデバイス名
+        target_baudrate: 1000000 # 通信速度
+        latency_timer: 1 # 通信のインターバル
+    # 探索するサーボの設定
+        min_id: 0
+        max_id: 40
+        min_search_baudrate: 57600
+        max_search_baudrate: 4000000
+```
+
+保存した後，Raspberry Pi で以下を実行する．
+
+```bash
+ros2 launch topoquad_master dynamixel_unify_baudrate.launch.py
+```
+
+接続しているすべてのDynamixelを探索して，ボーレートを統一する．
