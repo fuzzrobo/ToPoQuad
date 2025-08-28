@@ -27,3 +27,22 @@ launchファイルから起動した場合以下のようにremapされている
   <remap from="/neck/state/present" to="/spider/state/neck/present" />
   <remap from="/neck/state/goal" to="/spider/state/neck/goal" />
 ```
+
+## dynamixel id map
+
+### Leg/脚
+topoquad_master pkg の leg_node が 持っている情報.
+ - 後右 :  4  3  2
+ - 前右 : 14 13 12
+ - 前左 : 24 23 22
+ - 後左 : 34 33 32
+　　（根元 <--> 足先）
+
+ launchから書き換え可能．
+
+### Neck/首 (optional)
+topoquad_master pkg の neck_node が 持っている情報.
+ - Pan : 43
+ - Tilt : 42
+
+ launchから書き換え可能．
