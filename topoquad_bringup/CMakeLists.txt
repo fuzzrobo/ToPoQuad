@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 3.5)
-project(turtlebot3_lime_bringup)
+project(topoquad_bringup)
 
 ################################################################################
 # Find and load build settings from external packages
