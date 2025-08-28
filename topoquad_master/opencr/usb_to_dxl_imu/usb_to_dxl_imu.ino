@@ -10,7 +10,7 @@
 #define CMD_PORT              Serial      // USB
 #define DBG_PORT              Serial2     // UART1
 #define DXL_PORT              Serial3
-#define DXL_BAUD              1000000
+#define DXL_BAUD              1000000 // 何らか設定できるようにした方がいい．
 
 
 #define DXL_LED_RX            BDPIN_LED_USER_1
@@ -44,9 +44,9 @@ static uint32_t tx_bandwidth = 0;
 uint32_t usb_baud;
 
 // Dynamixel2Arduino
-#define DXL_MODEL_NUM 0	//XC330-T288-T
+#define DXL_MODEL_NUM 0 // 既存のDynamixelと被るとまずいので，　0にしておく．
 #define DXL_PROTOCOL_VER_2_0 2.0
-#define DXL_SLAVE_ID 40
+#define DXL_SLAVE_ID 40 // 何らかの方法で書き換えられるようにした方がいい
 class DXLPortHandler2 : public DXLPortHandler{
    int available_length = 0;
    int read_length = 0;
