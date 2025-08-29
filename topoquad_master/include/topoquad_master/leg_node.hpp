@@ -17,7 +17,7 @@
 #define ANGLE_BL (M_PI_4 + M_PI_2 * 2)
 #define ANGLE_BR (M_PI_4 + M_PI_2 * 3)
 
-#define LENGTH_BASE 0.052
+#define LENGTH_BASE 0.063
 #define LENGTH_HIP_YAW 0.0445
 #define LENGTH_HIP_PITCH 0.0445
 #define LENGTH_KNEE_PITCH 0.0715
