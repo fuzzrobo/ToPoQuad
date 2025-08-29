@@ -19,8 +19,8 @@ class NeckNode : public rclcpp::Node {
 
         auto ids_pantilt = this->get_parameter("pantilt_dynamixel_ID").as_integer_array();
 
-        target_neck_.initialize(Joint{ids_pantilt[0], +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.5 /*Nm*/},
-                                Joint{ids_pantilt[1], +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.5 /*Nm*/});
+        target_neck_.initialize(Joint{static_cast<uint8_t>(ids_pantilt[0]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.5 /*Nm*/},
+                                Joint{static_cast<uint8_t>(ids_pantilt[1]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.5 /*Nm*/});
         goal_neck_ = target_neck_;
         present_neck_ = target_neck_;
 

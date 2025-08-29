@@ -49,18 +49,18 @@ class LegNode : public rclcpp::Node {
         auto ids_fl = this->get_parameter("FL_leg_dynamixel_ID").as_integer_array();
         auto ids_bl = this->get_parameter("BL_leg_dynamixel_ID").as_integer_array();
 
-        target_leg_br_.initialize(Joint{ids_br[0], -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_br[1], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_br[2], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_fr_.initialize(Joint{ids_fr[0], -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_fr[1], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_fr[2], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_fl_.initialize(Joint{ids_fl[0], +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_fl[1], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_fl[2], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_bl_.initialize(Joint{ids_bl[0], +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_bl[1], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
-                                  Joint{ids_bl[2], +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
+        target_leg_br_.initialize(Joint{static_cast<uint8_t>(ids_br[0]), -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_br[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_br[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
+        target_leg_fr_.initialize(Joint{static_cast<uint8_t>(ids_fr[0]), -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_fr[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_fr[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
+        target_leg_fl_.initialize(Joint{static_cast<uint8_t>(ids_fl[0]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_fl[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_fl[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
+        target_leg_bl_.initialize(Joint{static_cast<uint8_t>(ids_bl[0]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_bl[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+                                  Joint{static_cast<uint8_t>(ids_bl[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
 
         this->declare_parameter<string>("control_mode", "position");
         auto mode_str = this->get_parameter("control_mode").as_string();
