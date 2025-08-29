@@ -12,7 +12,11 @@
           pos_p: 800.0
         overshoot: 0.0
         deadband: 0.01
+        BR_leg_dynamixel_ID: [ 4,  3,  2] # hip_yaw, hip_pitch, knee_pitch
+        FR_leg_dynamixel_ID: [14, 13, 12] # hip_yaw, hip_pitch, knee_pitch
+        FL_leg_dynamixel_ID: [24, 23, 22] # hip_yaw, hip_pitch, knee_pitch
+        BL_leg_dynamixel_ID: [34, 33, 32] # hip_yaw, hip_pitch, knee_pitch
 
 /topoquad/neck_node:
     ros__parameters:
-        dummy: 0
+        pantilt_dynamixel_ID: [43, 42]
