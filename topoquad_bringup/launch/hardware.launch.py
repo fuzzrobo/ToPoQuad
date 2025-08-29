@@ -14,7 +14,7 @@ def generate_launch_description():
         package='dynamixel_handler',
         executable='dynamixel_handler_node',
         name='dxl_handler',
-        namespace='ns',
+        namespace='topoquad',
         output='screen',
         emulate_tty=True,
         parameters=[dynamixel_handler_config]
@@ -29,7 +29,7 @@ def generate_launch_description():
     leg_node = Node(
         package='topoquad_master',
         executable='leg_node',
-        namespace='ns',
+        namespace='topoquad',
         name='leg_node',
         output='screen',
         parameters=[topoquad_master_config]
@@ -38,7 +38,7 @@ def generate_launch_description():
     neck_node = Node(
         package='topoquad_master',
         executable='neck_node',
-        namespace='ns',
+        namespace='topoquad',
         name='neck_node',
         output='screen',
     )

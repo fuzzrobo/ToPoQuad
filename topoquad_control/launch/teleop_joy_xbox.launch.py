@@ -13,21 +13,21 @@ def generate_launch_description():
     node_keyboard = Node(
         package="topoquad_control",
         executable="keyboard_node",
-        namespace='ns',
+        namespace='topoquad',
         output="both"
     )
         
     node_joy = Node(
         package="joy",
         executable="joy_node",
-        namespace='ns',
+        namespace='topoquad',
         output="both"
     )
     
     node_teleop_joy_xbox = Node(
         package="topoquad_control",
         executable="teleop_joy_xbox",
-        namespace='ns',
+        namespace='topoquad',
         output="both"
     )
     

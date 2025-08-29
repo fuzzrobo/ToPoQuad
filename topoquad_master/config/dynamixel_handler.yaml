@@ -1,10 +1,10 @@
-ns:
+topoquad:
   dxl_handler:
     ros__parameters:
     # 開発用
         debug: true # true: デバイスとの接続に失敗してもエラーを出力しない/ false: エラーを出力して終了する
         no_use_command_line: false # true: プログラム用のトピックのみ使用する/ false: コマンドライン用のトピックも出力する
-        # dummy_servo_id_list: [] # ダミーのサーボを作成する,同じIDのサーボが存在する場合でもダミーが優先される． 
+        # dummy_servo_id_list: [2,3,4,12,13,14,22,23,24,32,33,34,42,43] # ダミーのサーボを作成する,同じIDのサーボが存在する場合でもダミーが優先される． 
     # 通信機器の設定
         device_name: /dev/ttyACM0 # 通信するデバイス名
         baudrate: 3000000 # 通信速度

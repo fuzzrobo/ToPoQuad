@@ -1,4 +1,4 @@
-/ns/leg_node:
+/topoquad/leg_node:
     ros__parameters:
         # control_mode: "velocity"
         control_mode: "velocity_current"
@@ -13,6 +13,6 @@
         overshoot: 0.0
         deadband: 0.01
 
-/ns/neck_node:
+/topoquad/neck_node:
     ros__parameters:
         dummy: 0

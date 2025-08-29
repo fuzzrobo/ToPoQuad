@@ -203,12 +203,12 @@ ros2 launch topoquad_control sample_walk.launch.py
 リモートPCで以下のコマンドをそれぞれ別のターミナルで実行
 ```bash
 # 新しいターミナルで実行
-ros2 run topoquad_control keyboard_node --ros-args --remap __ns:=/ns
+ros2 run topoquad_control keyboard_node --ros-args --remap __ns:=/topoquad
 ```
 
 ```bash
 # 新しいターミナルで実行
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap __ns:=/ns
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap __ns:=/topoquad
 ```
 ２つ目のターミナルにカーソルを合わせた状態で適切なキーを押せばロボットが動く
 
@@ -219,7 +219,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap __ns:=/n
 ros2 run plotjuggler plotjuggler -l ~/topoquad_ws/src/ToPoQuad/plot_config.xml
 ```
 出てくるウィンドウでyesを選択。
-Select ROS message という window では `/ns/legs/point`, `/ns/legs/state/goal`, `/ns/legs/state/present`, の3つを選択してOK.
+Select ROS message という window では `/topoquad/legs/point`, `/topoquad/legs/state/goal`, `/topoquad/legs/state/present`, の3つを選択してOK.
 
 ## その他
 

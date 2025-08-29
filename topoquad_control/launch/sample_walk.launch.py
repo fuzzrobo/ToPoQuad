@@ -13,7 +13,7 @@ def generate_launch_description():
     node_walk = Node(
         package="topoquad_control",
         executable="walk_node",
-        namespace='ns',
+        namespace='topoquad',
         output="both"
     )
             
