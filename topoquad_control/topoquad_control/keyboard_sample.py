@@ -76,7 +76,7 @@ class TeleopNode(Node):
 
         body_motion = lambda time: [
             r * cos(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
-            r * sin(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
+            r * sin(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)) - 0.01,
             -0.01
         ] # 重心位置
         leg_motion_paralell = lambda time: [ # 足先の軌道, 足先ベクトルを返すthetaの関数として歩行軌道を定義        

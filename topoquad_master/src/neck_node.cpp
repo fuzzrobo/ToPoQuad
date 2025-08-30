@@ -43,13 +43,11 @@ class NeckNode : public rclcpp::Node {
     void timer_cb() {
         if (target_neck_.is_updated_ || target_neck_ != goal_neck_) {
             dynamixel_handler::msg::DxlCommandsX dyn_msg;
-            auto& ctrl_msg = dyn_msg.current_base_position_control;
+            auto& ctrl_msg = dyn_msg.position_control;
             ctrl_msg.id_list.push_back(target_neck_.pan_.id_);
             ctrl_msg.id_list.push_back(target_neck_.tilt_.id_);
             ctrl_msg.position_deg.push_back(target_neck_.pan_.servo_angle_ * rad2deg);
             ctrl_msg.position_deg.push_back(target_neck_.tilt_.servo_angle_ * rad2deg);
-            ctrl_msg.current_ma.push_back(target_neck_.pan_.servo_current_);
-            ctrl_msg.current_ma.push_back(target_neck_.tilt_.servo_current_);
             ctrl_msg.profile_vel_deg_s.push_back(0);
             ctrl_msg.profile_vel_deg_s.push_back(0);
             dyn_cmd_pub_->publish(dyn_msg);

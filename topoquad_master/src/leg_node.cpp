@@ -168,21 +168,21 @@ class LegNode : public rclcpp::Node {
         apply_kin(target_leg_bl_, msg->angles_bl, msg->point_bl, -1);
 
         // Effort: torques preferred; else force (if non-zero) mapped via J^T
-        auto apply_effort = [&](Leg& leg,
+        auto apply_effort = [&](Leg& leg_t, Leg& leg_p,
                                 const vector<double>& torques,
                                 const geometry_msgs::msg::Vector3& f,
                                 const int sign) {
-            if (!torques.empty()) { leg.SetJointTorques(torques); return; }
+            if (!torques.empty()) { leg_t.SetJointTorques(torques); return; }
             if (!is_zero(f)) {
-                const auto a = leg.GetJointAngles();
-                auto tau = leg_inverse_statics(a, leg.fixed_pose_, sign, f);
-                leg.SetJointTorques(tau);
+                const auto a = leg_p.GetJointAngles();
+                auto tau = leg_inverse_statics(a, leg_t.fixed_pose_, sign, f);
+                leg_t.SetJointTorques(tau);
             }
         };
-        apply_effort(target_leg_fr_, msg->torques_fr, msg->force_fr, +1);
-        apply_effort(target_leg_fl_, msg->torques_fl, msg->force_fl, -1);
-        apply_effort(target_leg_br_, msg->torques_br, msg->force_br, +1);
-        apply_effort(target_leg_bl_, msg->torques_bl, msg->force_bl, -1);
+        apply_effort(target_leg_fr_, present_leg_fr_, msg->torques_fr, msg->force_fr, +1);
+        apply_effort(target_leg_fl_, present_leg_fl_, msg->torques_fl, msg->force_fl, -1);
+        apply_effort(target_leg_br_, present_leg_br_, msg->torques_br, msg->force_br, +1);
+        apply_effort(target_leg_bl_, present_leg_bl_, msg->torques_bl, msg->force_bl, -1);
 
         switch (control_mode_) {
             case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
