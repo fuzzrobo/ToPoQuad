@@ -3,6 +3,7 @@
 
 #include <topoquad_master/common.hpp>
 
+#include <eigen3/Eigen/Dense>
 #include "dynamixel_handler/msg/dxl_commands_x.hpp"
 #include "dynamixel_handler/msg/dxl_states.hpp"
 #include "geometry_msgs/msg/point.hpp"
@@ -69,6 +70,109 @@ Point leg_forward_kinematics(const vector<double>& angles, const Pose2D& fp, con
     k.y = fp.y + (LENGTH_HIP_YAW + l) * sin(fp.theta + sign * angles[0]);
     k.z = -(LENGTH_HIP_PITCH * sin(angles[1]) + LENGTH_KNEE_PITCH * sin(angles[1] + angles[2]));
     return k;
+}
+
+// Map end-effector force (in world frame) to joint torques via J^T.
+// angles: [hip_yaw, hip_pitch, knee_pitch]
+// fp: fixed base pose of the leg in world frame
+// sign: +1 for right legs (FR, BR), -1 for left legs (FL, BL) — same as leg_forward_kinematics/leg_inverse_kinematics
+inline vector<double> leg_inverse_statics(const vector<double>& angles,
+                                          const Pose2D& fp,
+                                          const int& sign,
+                                          const Vector3& Fw) {
+    vector<double> tau(3, 0.0);
+    if (angles.size() != 3) return tau;
+
+    const double t1 = angles[0];
+    const double t2 = angles[1];
+    const double t3 = angles[2];
+
+    const double phi  = fp.theta + sign * t1;
+    const double cphi = std::cos(phi);
+    const double sphi = std::sin(phi);
+    const double c2   = std::cos(t2);
+    const double s2   = std::sin(t2);
+    const double c23  = std::cos(t2 + t3);
+    const double s23  = std::sin(t2 + t3);
+
+    const double l    = LENGTH_HIP_PITCH * c2 + LENGTH_KNEE_PITCH * c23;
+    const double dl2  = -LENGTH_HIP_PITCH * s2 - LENGTH_KNEE_PITCH * s23;  // dl/dt2
+    const double dl3  = -LENGTH_KNEE_PITCH * s23;                          // dl/dt3
+
+    // Jacobian columns (x,y,z) for t1,t2,t3
+    const double j1x = -sign * (LENGTH_HIP_YAW + l) * sphi;
+    const double j1y =  sign * (LENGTH_HIP_YAW + l) * cphi;
+    const double j1z =  0.0;
+
+    const double j2x = cphi * dl2;
+    const double j2y = sphi * dl2;
+    const double j2z = -(LENGTH_HIP_PITCH * c2 + LENGTH_KNEE_PITCH * c23);
+
+    const double j3x = cphi * dl3;
+    const double j3y = sphi * dl3;
+    const double j3z = -LENGTH_KNEE_PITCH * c23;
+
+    const double Fx = Fw.x;
+    const double Fy = Fw.y;
+    const double Fz = Fw.z;
+
+    tau[0] = j1x * Fx + j1y * Fy + j1z * Fz;
+    tau[1] = j2x * Fx + j2y * Fy + j2z * Fz;
+    tau[2] = j3x * Fx + j3y * Fy + j3z * Fz;
+
+    return tau;
+}
+
+// Map joint torques to end-effector force via (J^T)^{-1}
+inline Vector3 leg_forward_statics(const vector<double>& angles,
+                                   const Pose2D& fp,
+                                   const int& sign,
+                                   const vector<double>& tau) {
+    Vector3 F;
+    F.x = F.y = F.z = 0.0;
+    if (angles.size() != 3 || tau.size() != 3) return F;
+
+    const double t1 = angles[0];
+    const double t2 = angles[1];
+    const double t3 = angles[2];
+
+    const double phi  = fp.theta + sign * t1;
+    const double cphi = std::cos(phi);
+    const double sphi = std::sin(phi);
+    const double c2   = std::cos(t2);
+    const double s2   = std::sin(t2);
+    const double c23  = std::cos(t2 + t3);
+    const double s23  = std::sin(t2 + t3);
+
+    const double l    = LENGTH_HIP_PITCH * c2 + LENGTH_KNEE_PITCH * c23;
+    const double dl2  = -LENGTH_HIP_PITCH * s2 - LENGTH_KNEE_PITCH * s23;  // dl/dt2
+    const double dl3  = -LENGTH_KNEE_PITCH * s23;                          // dl/dt3
+
+    // Jacobian columns (x,y,z) for t1,t2,t3
+    const double j1x = -sign * (LENGTH_HIP_YAW + l) * sphi;
+    const double j1y =  sign * (LENGTH_HIP_YAW + l) * cphi;
+    const double j1z =  0.0;
+
+    const double j2x = cphi * dl2;
+    const double j2y = sphi * dl2;
+    const double j2z = -(LENGTH_HIP_PITCH * c2 + LENGTH_KNEE_PITCH * c23);
+
+    const double j3x = cphi * dl3;
+    const double j3y = sphi * dl3;
+    const double j3z = -LENGTH_KNEE_PITCH * c23;
+
+    Eigen::Matrix3d JT;
+    JT << j1x, j1y, j1z,
+          j2x, j2y, j2z,
+          j3x, j3y, j3z;
+
+    Eigen::Vector3d tau_v(tau[0], tau[1], tau[2]);
+    Eigen::Vector3d F_v = JT.colPivHouseholderQr().solve(tau_v);
+
+    F.x = F_v(0);
+    F.y = F_v(1);
+    F.z = F_v(2);
+    return F;
 }
 
 class Leg {

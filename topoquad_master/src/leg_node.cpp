@@ -167,6 +167,23 @@ class LegNode : public rclcpp::Node {
         apply_kin(target_leg_br_, msg->angles_br, msg->point_br, +1);
         apply_kin(target_leg_bl_, msg->angles_bl, msg->point_bl, -1);
 
+        // Effort: torques preferred; else force (if non-zero) mapped via J^T
+        auto apply_effort = [&](Leg& leg,
+                                const vector<double>& torques,
+                                const geometry_msgs::msg::Vector3& f,
+                                const int sign) {
+            if (!torques.empty()) { leg.SetJointTorques(torques); return; }
+            if (!is_zero(f)) {
+                const auto a = leg.GetJointAngles();
+                auto tau = leg_inverse_statics(a, leg.fixed_pose_, sign, f);
+                leg.SetJointTorques(tau);
+            }
+        };
+        apply_effort(target_leg_fr_, msg->torques_fr, msg->force_fr, +1);
+        apply_effort(target_leg_fl_, msg->torques_fl, msg->force_fl, -1);
+        apply_effort(target_leg_br_, msg->torques_br, msg->force_br, +1);
+        apply_effort(target_leg_bl_, msg->torques_bl, msg->force_bl, -1);
+
         switch (control_mode_) {
             case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
             case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
@@ -420,7 +437,8 @@ class LegNode : public rclcpp::Node {
         if (legs[0].get().is_updated_) {
             state_msg.angles_fr = legs[0].get().GetJointAngles();
             state_msg.torques_fr = legs[0].get().GetJointTorques();
-            state_msg.point_fr = leg_forward_kinematics(state_msg.angles_fr, legs[0].get().fixed_pose_, 1);
+            state_msg.point_fr = leg_forward_kinematics(state_msg.angles_fr, legs[0].get().fixed_pose_, +1);
+            state_msg.force_fr = leg_forward_statics(state_msg.angles_fr, legs[0].get().fixed_pose_, +1, state_msg.torques_fr);
             legs[0].get().is_updated_ = false;
             is_any_updated_p = true;
         }
@@ -428,13 +446,15 @@ class LegNode : public rclcpp::Node {
             state_msg.angles_fl = legs[1].get().GetJointAngles();
             state_msg.torques_fl = legs[1].get().GetJointTorques();
             state_msg.point_fl = leg_forward_kinematics(state_msg.angles_fl, legs[1].get().fixed_pose_, -1);
+            state_msg.force_fl = leg_forward_statics(state_msg.angles_fl, legs[1].get().fixed_pose_, -1, state_msg.torques_fl);
             legs[1].get().is_updated_ = false;
             is_any_updated_p = true;
         }
         if (legs[2].get().is_updated_) {
             state_msg.angles_br = legs[2].get().GetJointAngles();
             state_msg.torques_br = legs[2].get().GetJointTorques();
-            state_msg.point_br = leg_forward_kinematics(state_msg.angles_br, legs[2].get().fixed_pose_, 1);
+            state_msg.point_br = leg_forward_kinematics(state_msg.angles_br, legs[2].get().fixed_pose_, +1);
+            state_msg.force_br = leg_forward_statics(state_msg.angles_br, legs[2].get().fixed_pose_, +1, state_msg.torques_br);
             legs[2].get().is_updated_ = false;
             is_any_updated_p = true;
         }
@@ -442,6 +462,7 @@ class LegNode : public rclcpp::Node {
             state_msg.angles_bl = legs[3].get().GetJointAngles();
             state_msg.torques_bl = legs[3].get().GetJointTorques();
             state_msg.point_bl = leg_forward_kinematics(state_msg.angles_bl, legs[3].get().fixed_pose_, -1);
+            state_msg.force_bl = leg_forward_statics(state_msg.angles_bl, legs[3].get().fixed_pose_, -1, state_msg.torques_bl);
             legs[3].get().is_updated_ = false;
             is_any_updated_p = true;
         }

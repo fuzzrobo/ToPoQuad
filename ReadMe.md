@@ -167,6 +167,7 @@ sudo apt install -y git
 #### 2.4. その他のROS 2パッケージのインストール
 ```bash
 sudo apt install ros-humble-plotjuggler
+sudo apt install ros-humble-plotjuggler-ros
 sudo apt install ros-humble-teleop-twist-keyboard 
 ```
 
