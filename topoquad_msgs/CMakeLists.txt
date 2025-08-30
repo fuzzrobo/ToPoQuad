@@ -19,12 +19,9 @@ if(BUILD_TESTING)
 endif()
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/QuadRobotCmdLegAngle.msg"
-  "msg/QuadRobotCmdLegPoint.msg"
-  "msg/QuadRobotCmdNeckAngle.msg"
-  "msg/QuadRobotStateLeg.msg"
-  "msg/QuadRobotStateNeck.msg"
-  DEPENDENCIES geometry_msgs
+  "msg/QuadRobotLeg.msg"
+  "msg/QuadRobotNeck.msg"
+  DEPENDENCIES geometry_msgs builtin_interfaces
 )
 ament_export_dependencies(rosidl_default_runtime)
 

@@ -7,10 +7,9 @@
 #include "dynamixel_handler/msg/dxl_states.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "topoquad_msgs/msg/quad_robot_cmd_leg_angle.hpp"
-#include "topoquad_msgs/msg/quad_robot_cmd_leg_point.hpp"
-#include "topoquad_msgs/msg/quad_robot_state_leg.hpp"
+#include "topoquad_msgs/msg/quad_robot_leg.hpp"
 
 #define ANGLE_FR (M_PI_4 + M_PI_2 * 0)
 #define ANGLE_FL (M_PI_4 + M_PI_2 * 1)
@@ -24,11 +23,20 @@
 
 using geometry_msgs::msg::Point;
 using geometry_msgs::msg::Pose2D;
+using geometry_msgs::msg::Vector3;
 using std::isnan;
 using std::ref;
 using std::vector;
 using std::placeholders::_1;
 using namespace std::chrono_literals;
+
+// Small helpers
+inline bool is_zero(const Point& p) {
+    return p.x == 0.0 && p.y == 0.0 && p.z == 0.0;
+}
+inline bool is_zero(const Vector3& v) {
+    return v.x == 0.0 && v.y == 0.0 && v.z == 0.0;
+}
 
 // https://qiita.com/Ninagawa123/items/4ae058d819de1d5b698a
 inline double two_link_ik_t1(const double x, const double y, const double l1, const double l2) {
@@ -43,7 +51,7 @@ inline double normalizeAngle(const double theta) {
     return theta - (2 * M_PI) * floor((theta + M_PI) / (2 * M_PI));
 }
 
-vector<double> leg_ik(const Point& tp, const Pose2D& fp, const int& sign) {
+vector<double> leg_inverse_kinematics(const Point& tp, const Pose2D& fp, const int& sign) {
     double dx = tp.x - fp.x;
     double dy = tp.y - fp.y;
     double x = hypot(dx, dy) - LENGTH_HIP_YAW;
@@ -54,7 +62,7 @@ vector<double> leg_ik(const Point& tp, const Pose2D& fp, const int& sign) {
     return angles;
 }
 
-Point leg_k(const vector<double>& angles, const Pose2D& fp, const int& sign) {
+Point leg_forward_kinematics(const vector<double>& angles, const Pose2D& fp, const int& sign) {
     Point k;
     double l = LENGTH_HIP_PITCH * cos(angles[1]) + LENGTH_KNEE_PITCH * cos(angles[1] + angles[2]);
     k.x = fp.x + (LENGTH_HIP_YAW + l) * cos(fp.theta + sign * angles[0]);
@@ -97,9 +105,9 @@ class Leg {
             std::cout << "The size of torques must be 3" << std::endl;
             return;
         }
-        hip_yaw_.SetJointAngle(torques[0]);
-        hip_pitch_.SetJointAngle(torques[1]);
-        knee_pitch_.SetJointAngle(torques[2]);
+        hip_yaw_.SetJointTorque(torques[0]);
+        hip_pitch_.SetJointTorque(torques[1]);
+        knee_pitch_.SetJointTorque(torques[2]);
         is_updated_ = true;
     }
 

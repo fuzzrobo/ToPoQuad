@@ -219,7 +219,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args --remap __ns:=/t
 ros2 run plotjuggler plotjuggler -l ~/topoquad_ws/src/ToPoQuad/plot_config.xml
 ```
 出てくるウィンドウでyesを選択。
-Select ROS message という window では `/topoquad/legs/point`, `/topoquad/legs/state/goal`, `/topoquad/legs/state/present`, の3つを選択してOK.
+Select ROS message という window では `/topoquad/legs/command`, `/topoquad/legs/state/goal`, `/topoquad/legs/state/present`, の3つを選択してOK.
 
 ## その他
 

@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 
 from sensor_msgs.msg import Joy
-from topoquad_msgs.msg import QuadRobotCmdNeckAngle, QuadRobotCmdLegPoint
+from topoquad_msgs.msg import QuadRobotNeck, QuadRobotLeg
 from geometry_msgs.msg import Point
 
 from math import pi, sin, cos
@@ -33,8 +33,8 @@ class TeleopNode(Node):
         self.legs = [[0.]*3, [0.]*3, [0.]*3, [0.]*3]
         
         # Publishers
-        self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
-        self.leg_point_pub_ = self.create_publisher(QuadRobotCmdLegPoint, 'legs/point', 10)
+        self.neck_cmd_pub_ = self.create_publisher(QuadRobotNeck, 'neck/command', 10)
+        self.leg_cmd_pub_ = self.create_publisher(QuadRobotLeg, 'legs/command', 10)
         
         # Subscribers
         self.joy_sub_ = self.create_subscription(Joy, 'joy', self.joy_cb, 10)
@@ -47,7 +47,7 @@ class TeleopNode(Node):
     def timer_cb(self):
         if self.joy != None:
             # Neck
-            neck_cmd = QuadRobotCmdNeckAngle()
+            neck_cmd = QuadRobotNeck()
             neck_cmd.angle_pan = self.joy.axes[3] * self.angle_pan_limit
             neck_cmd.angle_tilt = self.joy.axes[4] * self.angle_tilt_limit
             self.neck_cmd_pub_.publish(neck_cmd)
@@ -90,24 +90,24 @@ class TeleopNode(Node):
             return True
         
     def publish(self):
-        msg = QuadRobotCmdLegPoint()
+        msg = QuadRobotLeg()
         
-        msg.leg_fl.x = -0.09 + self.legs[0][0]
-        msg.leg_fl.y = 0.09 + self.legs[0][1]
-        msg.leg_fl.z = -0.10 + self.legs[0][2]
+        msg.point_fl.x = -0.09 + self.legs[0][0]
+        msg.point_fl.y = 0.09 + self.legs[0][1]
+        msg.point_fl.z = -0.10 + self.legs[0][2]
 
-        msg.leg_fr.x =  0.09 + self.legs[1][0]
-        msg.leg_fr.y = 0.09 + self.legs[1][1]
-        msg.leg_fr.z = -0.10 + self.legs[1][2]
+        msg.point_fr.x =  0.09 + self.legs[1][0]
+        msg.point_fr.y = 0.09 + self.legs[1][1]
+        msg.point_fr.z = -0.10 + self.legs[1][2]
         
-        msg.leg_br.x = 0.09 + self.legs[2][0]
-        msg.leg_br.y = -0.09 + self.legs[2][1]
-        msg.leg_br.z = -0.10 + self.legs[2][2]
+        msg.point_br.x = 0.09 + self.legs[2][0]
+        msg.point_br.y = -0.09 + self.legs[2][1]
+        msg.point_br.z = -0.10 + self.legs[2][2]
 
-        msg.leg_bl.x = -0.09 + self.legs[3][0]
-        msg.leg_bl.y = -0.09 + self.legs[3][1]
-        msg.leg_bl.z = -0.10 + self.legs[3][2]
-        self.leg_point_pub_.publish(msg)
+        msg.point_bl.x = -0.09 + self.legs[3][0]
+        msg.point_bl.y = -0.09 + self.legs[3][1]
+        msg.point_bl.z = -0.10 + self.legs[3][2]
+        self.leg_cmd_pub_.publish(msg)
 
 
 def main(args=None):

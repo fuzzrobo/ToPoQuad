@@ -4,7 +4,7 @@ from rclpy.node import Node
 import time
 
 from geometry_msgs.msg import Twist
-from topoquad_msgs.msg import QuadRobotCmdNeckAngle
+from topoquad_msgs.msg import QuadRobotNeck
 from sensor_msgs.msg import Joy
 
 class TeleopJoyXboxNode(Node):
@@ -25,7 +25,7 @@ class TeleopJoyXboxNode(Node):
         self.angle_tilt_max = self.get_parameter('angle_tilt_max').get_parameter_value().double_value
         
         self.cmd_pub_ = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.neck_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
+        self.neck_cmd_pub_ = self.create_publisher(QuadRobotNeck, 'neck/command', 10)
         
         self.joy_sub_ = self.create_subscription(Joy,'joy',self.joy_cb, 10)
         
@@ -42,11 +42,11 @@ class TeleopJoyXboxNode(Node):
             cmd.angular.z = self.angular_w if self.joy.buttons[4] else (-self.angular_w if self.joy.buttons[5] else 0.0)
             self.cmd_pub_.publish(cmd)
             
-            neck_cmd = QuadRobotCmdNeckAngle()
+            neck_cmd = QuadRobotNeck()
             neck_cmd.angle_pan =  self.joy.axes[3] * self.angle_pan_max
             neck_cmd.angle_tilt = self.joy.axes[4] * self.angle_tilt_max
 
-        self.neck_pub_.publish(neck_cmd)
+        self.neck_cmd_pub_.publish(neck_cmd)
     
     def joy_cb(self, msg):
         self.joy = msg

@@ -2,14 +2,14 @@
 
 using std::map;
 using std::string;
+using std::vector;
 
 class LegNode : public rclcpp::Node {
     rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
-    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_, leg_state_t_pub_;
+    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_, leg_state_t_pub_;
     // rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
 
-    rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>::SharedPtr leg_point_sub_;
-    rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdLegAngle>::SharedPtr leg_angle_sub_;
+    rclcpp::Subscription<topoquad_msgs::msg::QuadRobotLeg>::SharedPtr leg_command_sub_;
     rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -39,26 +39,26 @@ class LegNode : public rclcpp::Node {
           target_leg_br_(LENGTH_BASE * cos(ANGLE_BR), LENGTH_BASE * sin(ANGLE_BR), ANGLE_BR),
           target_leg_bl_(LENGTH_BASE * cos(ANGLE_BL), LENGTH_BASE * sin(ANGLE_BL), ANGLE_BL) {
         // Parameters
-        this->declare_parameter<std::vector<int64_t>>("BR_leg_dynamixel_ID", std::vector<int64_t>({4, 3, 2}));
-        this->declare_parameter<std::vector<int64_t>>("FR_leg_dynamixel_ID", std::vector<int64_t>({14, 13, 12}));
-        this->declare_parameter<std::vector<int64_t>>("FL_leg_dynamixel_ID", std::vector<int64_t>({24, 23, 22}));
-        this->declare_parameter<std::vector<int64_t>>("BL_leg_dynamixel_ID", std::vector<int64_t>({34, 33, 32}));
+        this->declare_parameter<vector<int64_t>>("BR_leg_dynamixel_ID", vector<int64_t>({4, 3, 2}));
+        this->declare_parameter<vector<int64_t>>("FR_leg_dynamixel_ID", vector<int64_t>({14, 13, 12}));
+        this->declare_parameter<vector<int64_t>>("FL_leg_dynamixel_ID", vector<int64_t>({24, 23, 22}));
+        this->declare_parameter<vector<int64_t>>("BL_leg_dynamixel_ID", vector<int64_t>({34, 33, 32}));
 
         auto ids_br = this->get_parameter("BR_leg_dynamixel_ID").as_integer_array();
         auto ids_fr = this->get_parameter("FR_leg_dynamixel_ID").as_integer_array();
         auto ids_fl = this->get_parameter("FL_leg_dynamixel_ID").as_integer_array();
         auto ids_bl = this->get_parameter("BL_leg_dynamixel_ID").as_integer_array();
 
-        target_leg_br_.initialize(Joint{static_cast<uint8_t>(ids_br[0]), -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+        target_leg_br_.initialize(Joint{static_cast<uint8_t>(ids_br[0]), -1.0, 0.0      /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_br[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_br[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_fr_.initialize(Joint{static_cast<uint8_t>(ids_fr[0]), -1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+        target_leg_fr_.initialize(Joint{static_cast<uint8_t>(ids_fr[0]), -1.0, 0.0      /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_fr[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_fr[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_fl_.initialize(Joint{static_cast<uint8_t>(ids_fl[0]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+        target_leg_fl_.initialize(Joint{static_cast<uint8_t>(ids_fl[0]), +1.0, 0.0      /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_fl[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_fl[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
-        target_leg_bl_.initialize(Joint{static_cast<uint8_t>(ids_bl[0]), +1.0, 0.0 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
+        target_leg_bl_.initialize(Joint{static_cast<uint8_t>(ids_bl[0]), +1.0, 0.0      /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_bl[1]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/},
                                   Joint{static_cast<uint8_t>(ids_bl[2]), +1.0, M_PI / 4 /*rad*/, +0.92 / 800 /*Nm/mA*/, 0.6 /*Nm*/});
 
@@ -98,16 +98,14 @@ class LegNode : public rclcpp::Node {
 
         // Publishers
         dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
-        leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/present", 10);
-        leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/goal", 10);
-        leg_state_t_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateLeg>("legs/state/target", 10);
+        leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/present", 10);
+        leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/goal", 10);
+        leg_state_t_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/target", 10);
         // joint_state_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("jointstate/legs", 10);
 
         // Subscribers
-        leg_point_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegPoint>(
-            "legs/point", 10, std::bind(&LegNode::leg_point_cb, this, _1));
-        leg_angle_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdLegAngle>(
-            "legs/angle", 10, std::bind(&LegNode::leg_angle_cb, this, _1));
+        leg_command_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotLeg>(
+            "legs/command", 10, std::bind(&LegNode::leg_command_cb, this, _1));
         dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DxlStates>(
             "dynamixel/states", 10, std::bind(&LegNode::dyn_state_cb, this, _1));
 
@@ -115,8 +113,8 @@ class LegNode : public rclcpp::Node {
         timer_ = this->create_wall_timer(0.05s, std::bind(&LegNode::main_loop, this));
     }
     
-    private:
-    
+   private:
+
     void main_loop(){
         auto now = this->get_clock()->now();
         if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
@@ -150,38 +148,34 @@ class LegNode : public rclcpp::Node {
         dyn_cmd_pub_->publish(dyn_msg);
     }
 
-    void leg_point_cb(const topoquad_msgs::msg::QuadRobotCmdLegPoint::SharedPtr msg) {
-        auto angle_fr = leg_ik(msg->leg_fr, target_leg_fr_.fixed_pose_, 1);
-        if (!isnan(angle_fr[0]) && !isnan(angle_fr[1]) && !isnan(angle_fr[2])) target_leg_fr_.SetJointAngles(angle_fr);
-        auto angle_fl = leg_ik(msg->leg_fl, target_leg_fl_.fixed_pose_, -1);
-        if (!isnan(angle_fl[0]) && !isnan(angle_fl[1]) && !isnan(angle_fl[2])) target_leg_fl_.SetJointAngles(angle_fl);
-        auto angle_br = leg_ik(msg->leg_br, target_leg_br_.fixed_pose_, 1);
-        if (!isnan(angle_br[0]) && !isnan(angle_br[1]) && !isnan(angle_br[2])) target_leg_br_.SetJointAngles(angle_br);
-        auto angle_bl = leg_ik(msg->leg_bl, target_leg_bl_.fixed_pose_, -1);
-        if (!isnan(angle_bl[0]) && !isnan(angle_bl[1]) && !isnan(angle_bl[2])) target_leg_bl_.SetJointAngles(angle_bl);
-        // sensor_msgs::msg::JointState joint_msg;
-        switch (control_mode_) {
-            case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
-            case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
-            case MODE_POSITION: 
-            default:                 BroadcastDynamixelCommand_PositionBase(); break;
-        }
-        BroadcastLegState("target");
-    }
-    void leg_angle_cb(const topoquad_msgs::msg::QuadRobotCmdLegAngle::SharedPtr msg) {
-        if (msg->angles_fr.size() > 1) target_leg_fr_.SetJointAngles(msg->angles_fr);
-        if (msg->angles_fl.size() > 1) target_leg_fl_.SetJointAngles(msg->angles_fl);
-        if (msg->angles_br.size() > 1) target_leg_br_.SetJointAngles(msg->angles_br);
-        if (msg->angles_bl.size() > 1) target_leg_bl_.SetJointAngles(msg->angles_bl);
-        switch (control_mode_) {
-            case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
-            case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
-            case MODE_POSITION: 
-            default:                 BroadcastDynamixelCommand_PositionBase(); break;
-        }
-        BroadcastLegState("target");
+    
 
+    void leg_command_cb(const topoquad_msgs::msg::QuadRobotLeg::SharedPtr msg) {
+        // Kinematics: angles preferred; else point (if non-zero) via IK
+        auto apply_kin = [&](Leg& leg,
+                             const vector<double>& angles, 
+                             const geometry_msgs::msg::Point& p,
+                             const int sign) {
+            if (!angles.empty()) { leg.SetJointAngles(angles); return; }
+            if (!is_zero(p)) {
+                auto a = leg_inverse_kinematics(p, leg.fixed_pose_, sign);
+                if (!isnan(a[0]) && !isnan(a[1]) && !isnan(a[2])) leg.SetJointAngles(a);
+            }
+        };
+        apply_kin(target_leg_fr_, msg->angles_fr, msg->point_fr, +1);
+        apply_kin(target_leg_fl_, msg->angles_fl, msg->point_fl, -1);
+        apply_kin(target_leg_br_, msg->angles_br, msg->point_br, +1);
+        apply_kin(target_leg_bl_, msg->angles_bl, msg->point_bl, -1);
+
+        switch (control_mode_) {
+            case MODE_VELOCITY:      BroadcastDynamixelCommand_VelocityBase(); break;
+            case MODE_VELOCITY_SAFE: BroadcastDynamixelCommand_VelocityPosBase();   break;
+            case MODE_POSITION: 
+            default:                 BroadcastDynamixelCommand_PositionBase(); break;
+        }
+        BroadcastLegState("target");
     }
+
     void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
         for (auto& leg : {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)}) {
             if (auto& p=msg->present; !p.id_list.empty()) 
@@ -237,7 +231,7 @@ class LegNode : public rclcpp::Node {
     }
 
     void BroadcastDynamixelCommand_VelocityPosBase() {
-        static vector<std::reference_wrapper<Leg>> targets = {ref(target_leg_fr_), ref(target_leg_fl_), ref(target_leg_br_), ref(target_leg_bl_)};
+        static vector<std::reference_wrapper<Leg>> targets  = {ref( target_leg_fr_), ref( target_leg_fl_), ref( target_leg_br_), ref( target_leg_bl_)};
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
         auto now = this->get_clock()->now();
 
@@ -420,40 +414,41 @@ class LegNode : public rclcpp::Node {
         static vector<std::reference_wrapper<Leg>> goals = {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)};
         auto legs = (flag == "present") ? presents : (flag == "target") ? targets : goals;
 
-        topoquad_msgs::msg::QuadRobotStateLeg leg_msg;
+        topoquad_msgs::msg::QuadRobotLeg state_msg;
+        state_msg.stamp = this->get_clock()->now();
         bool is_any_updated_p = false;
         if (legs[0].get().is_updated_) {
-            leg_msg.angles_fr = legs[0].get().GetJointAngles();
-            leg_msg.torques_fr = legs[0].get().GetJointTorques();
-            leg_msg.point_fr = leg_k(leg_msg.angles_fr, legs[0].get().fixed_pose_, 1);
+            state_msg.angles_fr = legs[0].get().GetJointAngles();
+            state_msg.torques_fr = legs[0].get().GetJointTorques();
+            state_msg.point_fr = leg_forward_kinematics(state_msg.angles_fr, legs[0].get().fixed_pose_, 1);
             legs[0].get().is_updated_ = false;
             is_any_updated_p = true;
         }
         if (legs[1].get().is_updated_) {
-            leg_msg.angles_fl = legs[1].get().GetJointAngles();
-            leg_msg.torques_fl = legs[1].get().GetJointTorques();
-            leg_msg.point_fl = leg_k(leg_msg.angles_fl, legs[1].get().fixed_pose_, -1);
+            state_msg.angles_fl = legs[1].get().GetJointAngles();
+            state_msg.torques_fl = legs[1].get().GetJointTorques();
+            state_msg.point_fl = leg_forward_kinematics(state_msg.angles_fl, legs[1].get().fixed_pose_, -1);
             legs[1].get().is_updated_ = false;
             is_any_updated_p = true;
         }
         if (legs[2].get().is_updated_) {
-            leg_msg.angles_br = legs[2].get().GetJointAngles();
-            leg_msg.torques_br = legs[2].get().GetJointTorques();
-            leg_msg.point_br = leg_k(leg_msg.angles_br, legs[2].get().fixed_pose_, 1);
+            state_msg.angles_br = legs[2].get().GetJointAngles();
+            state_msg.torques_br = legs[2].get().GetJointTorques();
+            state_msg.point_br = leg_forward_kinematics(state_msg.angles_br, legs[2].get().fixed_pose_, 1);
             legs[2].get().is_updated_ = false;
             is_any_updated_p = true;
         }
         if (legs[3].get().is_updated_) {
-            leg_msg.angles_bl = legs[3].get().GetJointAngles();
-            leg_msg.torques_bl = legs[3].get().GetJointTorques();
-            leg_msg.point_bl = leg_k(leg_msg.angles_bl, legs[3].get().fixed_pose_, -1);
+            state_msg.angles_bl = legs[3].get().GetJointAngles();
+            state_msg.torques_bl = legs[3].get().GetJointTorques();
+            state_msg.point_bl = leg_forward_kinematics(state_msg.angles_bl, legs[3].get().fixed_pose_, -1);
             legs[3].get().is_updated_ = false;
             is_any_updated_p = true;
         }
 
         if (is_any_updated_p) 
-            (flag == "present") ? leg_state_p_pub_->publish(leg_msg) :
-            (flag == "target" ) ? leg_state_t_pub_->publish(leg_msg) : leg_state_g_pub_->publish(leg_msg);
+            (flag == "present") ? leg_state_p_pub_->publish(state_msg) :
+            (flag == "target" ) ? leg_state_t_pub_->publish(state_msg) : leg_state_g_pub_->publish(state_msg);
     }
 };
 

@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 
-from topoquad_msgs.msg import QuadRobotCmdNeckAngle, QuadRobotCmdLegPoint
+from topoquad_msgs.msg import QuadRobotNeck, QuadRobotLeg
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64MultiArray
 
@@ -34,8 +34,8 @@ class TeleopNode(Node):
         self.rot = 0.0
         
         # Publishers
-        self.neck_cmd_pub_ = self.create_publisher(QuadRobotCmdNeckAngle, 'neck/angle', 10)
-        self.leg_point_pub_ = self.create_publisher(QuadRobotCmdLegPoint, 'legs/point', 10)
+        self.neck_cmd_pub_ = self.create_publisher(QuadRobotNeck, 'neck/command', 10)
+        self.leg_cmd_pub_ = self.create_publisher(QuadRobotLeg, 'legs/command', 10)
         self.debug_pub_ = self.create_publisher(Float64MultiArray, 'debug', 10)
         
         # Subscribers
@@ -61,11 +61,11 @@ class TeleopNode(Node):
         vx  = vx_ if vx_==0 else sqrt(abs(vx_)) * vx_ / abs(vx_)
         vy  = vy_ if vy_==0 else sqrt(abs(vy_)) * vy_ / abs(vy_)
         rot = rot_ if rot_==0 else rot_ * abs(rot_) / hypot(rot_, 2*hypot(vx, vy))  
-        point = QuadRobotCmdLegPoint()
-        self.move_pal_rot(point, vx, vy, rot)
-        self.leg_point_pub_.publish(point)
+        cmd = QuadRobotLeg()
+        self.move_pal_rot(cmd, vx, vy, rot)
+        self.leg_cmd_pub_.publish(cmd)
     
-    def move_pal_rot(self, point, vx_, vy_, rot_):
+    def move_pal_rot(self, cmd, vx_, vy_, rot_):
         vx= 0.95*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/100
         vy= 0.95*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/100
         rot= 0.95*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/100
@@ -98,30 +98,30 @@ class TeleopNode(Node):
         xp, yp, zp  =  leg_motion_paralell( time_traj(phase-1.5/4*rot_dir) )
         xr, yr, zr  =  leg_motion_rotation( time_traj(phase-1.5/4*rot_dir*abs(rot)/R) )
         # self.debug_pub_.publish(Float64MultiArray(data=[(-zp * V - zr * R) / hypot(R, V)] ))
-        point.leg_fr.x = +base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので+
-        point.leg_fr.y = +base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
-        point.leg_fr.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        cmd.point_fr.x = +base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので+
+        cmd.point_fr.y = +base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
+        cmd.point_fr.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
         xp, yp, zp  =  leg_motion_paralell( time_traj(phase+1.5/4*rot_dir) )
         xr, yr, zr  =  leg_motion_rotation( time_traj(phase+1.5/4*rot_dir*abs(rot)/R) )
-        point.leg_fl.x = -base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので-
-        point.leg_fl.y = +base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
-        point.leg_fl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        cmd.point_fl.x = -base_radius - x0 + (-xp * V + xr * R) / hypot(R, V) # 右＋　左足なので-
+        cmd.point_fl.y = +base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
+        cmd.point_fl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
         xp, yp, zp  =  leg_motion_paralell( time_traj(phase-0.5/4*rot_dir) )
         xr, yr, zr  =  leg_motion_rotation( time_traj(phase-0.5/4*rot_dir*abs(rot)/R) )
-        point.leg_br.x = +base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　右足なので+
-        point.leg_br.y = -base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
-        point.leg_br.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        cmd.point_br.x = +base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　右足なので+
+        cmd.point_br.y = -base_radius - y0 + (-yp * V + yr * R) / hypot(R, V) # 前＋
+        cmd.point_br.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
         xp, yp, zp  =  leg_motion_paralell( time_traj(phase+0.5/4*rot_dir) )
         xr, yr, zr  =  leg_motion_rotation( time_traj(phase+0.5/4*rot_dir*abs(rot)/R) )
-        point.leg_bl.x = -base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　左足なので-
-        point.leg_bl.y = -base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
-        point.leg_bl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
+        cmd.point_bl.x = -base_radius - x0 + (-xp * V - xr * R) / hypot(R, V) # 右＋　左足なので-
+        cmd.point_bl.y = -base_radius - y0 + (-yp * V - yr * R) / hypot(R, V) # 前＋
+        cmd.point_bl.z = -base_height - z0 + (-zp * V - zr * R) / hypot(R, V) # 上＋
 
         self.phase_p = phase
         self.vx = vx 
         self.vy = vy 
         self.rot= rot
-        return point
+        return cmd
 
 def norm(phase):
     while phase > 1:

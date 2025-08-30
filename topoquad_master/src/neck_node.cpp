@@ -2,10 +2,10 @@
 
 class NeckNode : public rclcpp::Node {
     rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
-    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotStateNeck>::SharedPtr neck_state_p_pub_, neck_state_g_pub_;
+    rclcpp::Publisher<topoquad_msgs::msg::QuadRobotNeck>::SharedPtr neck_state_p_pub_, neck_state_g_pub_;
 
     rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
-    rclcpp::Subscription<topoquad_msgs::msg::QuadRobotCmdNeckAngle>::SharedPtr neck_angle_sub_;
+    rclcpp::Subscription<topoquad_msgs::msg::QuadRobotNeck>::SharedPtr neck_command_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
 
@@ -26,14 +26,14 @@ class NeckNode : public rclcpp::Node {
 
         // Publishers
         dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
-        neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/present", 10);
-        neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotStateNeck>("neck/state/goal", 10);
+        neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotNeck>("neck/state/present", 10);
+        neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotNeck>("neck/state/goal", 10);
 
         // Subscribers
         dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DxlStates>(
             "dynamixel/states", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
-        neck_angle_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotCmdNeckAngle>(
-            "neck/angle", 10, std::bind(&NeckNode::neck_angle_cb, this, _1));
+        neck_command_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotNeck>(
+            "neck/command", 10, std::bind(&NeckNode::neck_command_cb, this, _1));
 
         // Timer
         timer_ = this->create_wall_timer(5ms, std::bind(&NeckNode::timer_cb, this));
@@ -55,7 +55,7 @@ class NeckNode : public rclcpp::Node {
         }
 
         if (present_neck_.is_updated_) {
-            topoquad_msgs::msg::QuadRobotStateNeck neck_msg_p;
+            topoquad_msgs::msg::QuadRobotNeck neck_msg_p;
             neck_msg_p.angle_pan = present_neck_.pan_.joint_angle_;
             neck_msg_p.angle_tilt = present_neck_.tilt_.joint_angle_;
             neck_state_p_pub_->publish(neck_msg_p);
@@ -63,7 +63,7 @@ class NeckNode : public rclcpp::Node {
         }
 
         if (goal_neck_.is_updated_) {
-            topoquad_msgs::msg::QuadRobotStateNeck neck_msg_g;
+            topoquad_msgs::msg::QuadRobotNeck neck_msg_g;
             neck_msg_g.angle_pan = goal_neck_.pan_.joint_angle_;
             neck_msg_g.angle_tilt = goal_neck_.tilt_.joint_angle_;
             neck_state_g_pub_->publish(neck_msg_g);
@@ -82,7 +82,7 @@ class NeckNode : public rclcpp::Node {
             goal_neck_.is_updated_ = true;
         }
     }
-    void neck_angle_cb(const topoquad_msgs::msg::QuadRobotCmdNeckAngle::SharedPtr msg) {
+    void neck_command_cb(const topoquad_msgs::msg::QuadRobotNeck::SharedPtr msg) {
         target_neck_.SetJointAngles(msg->angle_pan, msg->angle_tilt);
     }
 };

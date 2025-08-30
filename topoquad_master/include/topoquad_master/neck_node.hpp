@@ -6,8 +6,7 @@
 #include "dynamixel_handler/msg/dxl_commands_x.hpp"
 #include "dynamixel_handler/msg/dxl_states.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "topoquad_msgs/msg/quad_robot_cmd_neck_angle.hpp"
-#include "topoquad_msgs/msg/quad_robot_state_neck.hpp"
+#include "topoquad_msgs/msg/quad_robot_neck.hpp"
 
 using std::isnan;
 using std::ref;
