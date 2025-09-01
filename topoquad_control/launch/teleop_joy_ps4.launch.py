@@ -26,7 +26,7 @@ def generate_launch_description():
     
     node_teleop_joy_xbox = Node(
         package="topoquad_control",
-        executable="teleop_joy_xbox",
+        executable="teleop_joy_ps4",
         namespace='topoquad',
         output="both"
     )

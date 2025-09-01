@@ -66,11 +66,11 @@ class TeleopNode(Node):
         self.leg_cmd_pub_.publish(cmd)
     
     def move_pal_rot(self, cmd, vx_, vy_, rot_):
-        vx= 0.94*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/100
-        vy= 0.94*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/100
-        rot= 0.94*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/100
-        V = max(max(0.01, hypot(vx, vy)), hypot(vx_, vy_))
-        R = max(max(0.01, abs(rot)), abs(rot_))
+        vx= 0.93*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/50
+        vy= 0.93*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/50
+        rot= 0.93*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/50
+        V = max(0.01, hypot(vx, vy))
+        R = max(0.01, abs(rot) )
         rot_dir = -1 if rot>0 else 1
         self.get_logger().info(f"vx: {vx}, vy: {vy}, rot: {rot_dir}", throttle_duration_sec = 1.0)
 

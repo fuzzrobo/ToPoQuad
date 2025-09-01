@@ -12,8 +12,8 @@ class TeleopJoyXboxNode(Node):
     def __init__(self):
         super().__init__('teleop_joy_xbox')
         # param
-        self.declare_parameter('timer_period', 1.0)
-        self.declare_parameter('linear_v', 1.2)
+        self.declare_parameter('timer_period', 0.1)
+        self.declare_parameter('linear_v', 2.5)
         self.declare_parameter('angular_w', 3.14)
         self.declare_parameter('angle_pan_max', 1.57)
         self.declare_parameter('angle_tilt_max', 0.78)
