@@ -45,8 +45,7 @@ class TeleopJoyXboxNode(Node):
             neck_cmd = QuadRobotNeck()
             neck_cmd.angle_pan =  self.joy.axes[3] * self.angle_pan_max
             neck_cmd.angle_tilt = self.joy.axes[4] * self.angle_tilt_max
-
-        self.neck_cmd_pub_.publish(neck_cmd)
+            self.neck_pub_.publish(neck_cmd)
     
     def joy_cb(self, msg):
         self.joy = msg

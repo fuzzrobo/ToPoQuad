@@ -12,7 +12,7 @@ from math import pi, sin, cos, sqrt, hypot
 r = 0.025
 s = 0.030
 h = 0.025
-base_radius = 0.080
+base_radius = 0.085
 base_height = 0.100
 class TeleopNode(Node):
 
@@ -66,17 +66,17 @@ class TeleopNode(Node):
         self.leg_cmd_pub_.publish(cmd)
     
     def move_pal_rot(self, cmd, vx_, vy_, rot_):
-        vx= 0.95*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/100
-        vy= 0.95*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/100
-        rot= 0.95*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/100
+        vx= 0.94*self.vx if vx_==0 else self.vx+ (-abs(vx_) if self.vx-vx_ > -0.001 else abs(vx_) if self.vx-vx_< 0.001 else 0)/100
+        vy= 0.94*self.vy if vy_==0 else self.vy+ (-abs(vy_) if self.vy-vy_ > -0.001 else abs(vy_) if self.vy-vy_< 0.001 else 0)/100
+        rot= 0.94*self.rot if rot_==0 else self.rot+ (-abs(rot_) if self.rot-rot_ > -0.001 else abs(rot_) if self.rot-rot_< 0.001 else 0)/100
         V = max(max(0.01, hypot(vx, vy)), hypot(vx_, vy_))
         R = max(max(0.01, abs(rot)), abs(rot_))
         rot_dir = -1 if rot>0 else 1
-        self.get_logger().info(f"vx: {vx}, vy: {vy}, rot: {rot_dir}, rot/R: {-clamp(-rot/R,-1, 1)}", throttle_duration_sec = 0.5)
+        self.get_logger().info(f"vx: {vx}, vy: {vy}, rot: {rot_dir}", throttle_duration_sec = 1.0)
 
         body_motion = lambda time: [
-            r * cos(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)),
-            r * sin(rot_dir*2*pi*(time+1/8)) * sqrt(hypot(vx, vy)) - 0.01,
+            r * cos(2*pi*(time+1/4)) * sqrt(hypot(vx, vy)),
+            r * sin(2*pi*(time+1/4)) * sqrt(hypot(vx, vy)) - 0.01,
             -0.01
         ] # 重心位置
         leg_motion_paralell = lambda time: [ # 足先の軌道, 足先ベクトルを返すthetaの関数として歩行軌道を定義        
@@ -91,10 +91,10 @@ class TeleopNode(Node):
         ] # 旋回
         a = 0.8 # 支持脚期の時間的な割有
         time_traj = (lambda phase:max(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))) 
-                    if a>0.5 else min(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))))
+                        if a>0.5 else min(norm(phase)/(2*a), 1+(norm(phase)-1)/(2*(1-a))))
 
         phase = norm(self.phase_p - hypot(rot, hypot(vx, vy))*self.phase_diff) # 0~1の範囲に収めつつ，位相を更新
-        x0, y0, z0 = body_motion((phase+(0.5/4+1/16)*rot_dir))
+        x0, y0, z0 = body_motion(((phase+1/8-(1-a)/2 + 0.04)*rot_dir))
         xp, yp, zp  =  leg_motion_paralell( time_traj(phase-1.5/4*rot_dir) )
         xr, yr, zr  =  leg_motion_rotation( time_traj(phase-1.5/4*rot_dir*abs(rot)/R) )
         # self.debug_pub_.publish(Float64MultiArray(data=[(-zp * V - zr * R) / hypot(R, V)] ))
