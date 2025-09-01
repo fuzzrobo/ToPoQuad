@@ -27,6 +27,7 @@ setup(
              'keyboard_node = topoquad_control.keyboard_sample:main',
              'walk_node = topoquad_control.walk_sample:main',
              'teleop_joy_xbox = topoquad_control.teleop_joy_xbox:main',
+             'teleop_joy_ps4 = topoquad_control.teleop_joy_ps4:main',
         ],
     },
 )

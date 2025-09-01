@@ -1,0 +1,38 @@
+import os
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from launch import LaunchDescription, LaunchContext
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, OpaqueFunction, ExecuteProcess
+from launch.event_handlers import OnProcessExit
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+
+def generate_launch_description():
+    node_keyboard = Node(
+        package="topoquad_control",
+        executable="keyboard_node",
+        namespace='topoquad',
+        output="both"
+    )
+        
+    node_joy = Node(
+        package="joy",
+        executable="joy_node",
+        namespace='topoquad',
+        output="both"
+    )
+    
+    node_teleop_joy_xbox = Node(
+        package="topoquad_control",
+        executable="teleop_joy_xbox",
+        namespace='topoquad',
+        output="both"
+    )
+    
+    return LaunchDescription([
+        node_keyboard,
+        node_joy,
+        node_teleop_joy_xbox
+    ])
