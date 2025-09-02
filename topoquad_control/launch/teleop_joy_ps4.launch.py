@@ -12,7 +12,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     node_keyboard = Node(
         package="topoquad_control",
-        executable="keyboard_node",
+        executable="twist_node",
         namespace='topoquad',
         output="both"
     )

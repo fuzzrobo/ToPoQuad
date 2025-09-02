@@ -27,14 +27,13 @@ class TeleopNode(Node):
         # Variable
         self.phase_p = 0.0
         self.phase_r = 0.0
-        self.phase_diff =  8.0 / 1000 
+        self.phase_diff =  8.0 / 1000
         self.twist = None
         self.vx  = 0.0
         self.vy  = 0.0
         self.rot = 0.0
         
         # Publishers
-        self.neck_cmd_pub_ = self.create_publisher(QuadRobotNeck, 'neck/command', 10)
         self.leg_cmd_pub_ = self.create_publisher(QuadRobotLeg, 'legs/command', 10)
         self.debug_pub_ = self.create_publisher(Float64MultiArray, 'debug', 10)
         
@@ -54,14 +53,20 @@ class TeleopNode(Node):
         if self.twist == None:
             self.twist = Twist()
 
-        # Legs
         vx_ = clamp(-self.twist.linear.y, -1.8, 1.8)
         vy_ = clamp( self.twist.linear.x, -1.8, 1.8)
         rot_= clamp( self.twist.angular.z, -1.5, 1.5)
+        if vx_==0.0 and vy_==0.0 and rot_==0.0:
+            return
+
         vx  = vx_ if vx_==0 else sqrt(abs(vx_)) * vx_ / abs(vx_)
         vy  = vy_ if vy_==0 else sqrt(abs(vy_)) * vy_ / abs(vy_)
         rot = rot_ if rot_==0 else rot_ * abs(rot_) / hypot(rot_, 2*hypot(vx, vy))  
         cmd = QuadRobotLeg()
+        cmd.torques_fr = [0.7, 0.7, 0.7]
+        cmd.torques_fl = [0.7, 0.7, 0.7]
+        cmd.torques_br = [0.7, 0.7, 0.7]
+        cmd.torques_bl = [0.7, 0.7, 0.7]
         self.move_pal_rot(cmd, vx, vy, rot)
         self.leg_cmd_pub_.publish(cmd)
     

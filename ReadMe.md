@@ -197,7 +197,7 @@ ros2 launch topoquad_control sample_walk.launch.py
 
  - コントローラで動かす場合
 ```bash
-# yet
+ros2 launch topoquad_control teleop_joy_ps4.launch.py
 ```
 
  - キーボードで動かす場合
