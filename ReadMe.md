@@ -204,7 +204,7 @@ ros2 launch topoquad_control teleop_joy_ps4.launch.py
 リモートPCで以下のコマンドをそれぞれ別のターミナルで実行
 ```bash
 # 新しいターミナルで実行
-ros2 run topoquad_control keyboard_node --ros-args --remap __ns:=/topoquad
+ros2 run topoquad_control twist_node --ros-args --remap __ns:=/topoquad
 ```
 
 ```bash
@@ -224,9 +224,32 @@ Select ROS message という window では `/topoquad/legs/command`, `/topoquad/
 
 ## その他
 
+### Dynamixel の Gain などを変えたくなったら
+
+`topoquad_master`パッケージ内のソースコードを編集する必要があります．
+例えば足に用いるXC330についてであれば，`/topoquad_master/src/leg_node.cpp` の以下の領域にある，`dynamixel_handler::msg::DxlCommandsX dyn_msg` の各フィールドを修正することで設定の変更が可能です．
+```cpp
+    void main_loop(){
+        auto now = this->get_clock()->now();
+        if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
+        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
+            // ... 略 ...
+            dyn_msg.status.id_list.push_back( leg.get().hip_yaw_.id_);  
+            dyn_msg.status.id_list.push_back( leg.get().hip_pitch_.id_);
+            dyn_msg.status.id_list.push_back( leg.get().knee_pitch_.id_);
+            dyn_msg.status.error.push_back( false );  
+            dyn_msg.status.error.push_back( false );
+            dyn_msg.status.error.push_back( false );
+        }
+        dyn_cmd_pub_->publish(dyn_msg);
+    }
+```
+詳細な使い方は，[`dynamixel_handler`のmsg型についての説明](https://github.com/fuzzrobo/DynamixelHandler-ros2/tree/2bdd1d680254c578aa08ddb92ecb7424061ded0f/msg#dynamixel_handlermsgdxlcommandsx-type)を参照してください．
+
 ### Dynamixel の Baudrate を変えたくなったら
 
-始めに，Raspberry Pi 内の `/topoquad_master/config/dynamixel_unify_baudrate.yaml` の `target_baudrate` を変更する．
+始めに，Raspberry Pi 内の `/topoquad_master/config/dynamixel_unify_baudrate.yaml` の `target_baudrate` を変更します．
 ```yml
 /**:
     ros__parameters:
@@ -249,10 +272,10 @@ Select ROS message という window では `/topoquad/legs/command`, `/topoquad/
         max_search_baudrate: 4000000
 ```
 
-保存した後，Raspberry Pi で以下を実行する．
+保存した後，Raspberry Pi で以下を実行します．．
 
 ```bash
 ros2 launch topoquad_master dynamixel_unify_baudrate.launch.py
 ```
 
-接続しているすべてのDynamixelを探索して，ボーレートを統一する．
+接続しているすべてのDynamixelを探索し，ボーレートを統一します．
