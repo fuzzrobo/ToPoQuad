@@ -222,6 +222,13 @@ ros2 run plotjuggler plotjuggler -l ~/topoquad_ws/src/ToPoQuad/plot_config.xml
 出てくるウィンドウでyesを選択。
 Select ROS message という window では `/topoquad/legs/command`, `/topoquad/legs/state/goal`, `/topoquad/legs/state/present`, の3つを選択してOK.
 
+## 4. Simでの動かし方
+
+### 4.1 Gazeboでの起動
+```bash
+ros2 launch topoquad_bringup gazebo.launch.py
+```
+
 ## その他
 
 ### Dynamixel の Baudrate を変えたくなったら
