@@ -3,6 +3,7 @@ import os
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.conditions import IfCondition
+from launch.conditions import UnlessCondition
 from launch.substitutions import Command
 from launch.substitutions import FindExecutable
 from launch.substitutions import LaunchConfiguration
@@ -29,6 +30,16 @@ def generate_launch_description():
     packages_name = "topoquad_description"
     xacro_file_name = "topoquad.xacro"
     rviz_file_name = "model.rviz"
+
+    use_joint_state_gui = LaunchConfiguration('use_joint_state_gui')
+
+    declared_arguments = [
+        DeclareLaunchArgument(
+            'use_joint_state_gui',
+            default_value='true',
+            description='Launch joint_state_publisher_gui window'
+        )
+    ]
 
     urdf_file = Command(
         [
@@ -62,12 +73,21 @@ def generate_launch_description():
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
         output='screen',
+        condition=IfCondition(use_joint_state_gui),
+    )
+    joint_state_pub_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        output='screen',
+        parameters=[robot_description],
+        condition=UnlessCondition(use_joint_state_gui),
     )
 
     nodes = [
         rviz_node,
         robot_state_pub_node,
+        joint_state_pub_node,
         joint_state_pub_gui_node,
     ]
 
-    return LaunchDescription(nodes)
+    return LaunchDescription(declared_arguments + nodes)

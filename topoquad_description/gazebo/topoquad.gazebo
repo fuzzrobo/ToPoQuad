@@ -1,178 +1,386 @@
 <?xml version="1.0" ?>
 <robot name="topoquad" xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
-<xacro:property name="body_color" value="Gazebo/Silver" />
-
 <gazebo>
-  <plugin name="control" filename="libgazebo_ros_control.so"/>
+  <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+    <parameters>$(find topoquad_bringup)/config/gazebo_controller_manager.yaml</parameters>
+  </plugin>
 </gazebo>
+
+<ros2_control name="topoquad_system" type="system">
+  <hardware>
+    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+  </hardware>
+
+  <joint name="BL_hip_yaw">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="BL_hip_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="BL_knee_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="BR_hip_yaw">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="BR_hip_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="BR_knee_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FR_hip_yaw">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FR_hip_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FR_knee_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FL_hip_yaw">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FL_hip_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="FL_knee_pitch">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="neck_pan">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <joint name="neck_tilt">
+    <command_interface name="position"/>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+  </joint>
+  <sensor name="imu_sensor">
+    <state_interface name="orientation.x"/>
+    <state_interface name="orientation.y"/>
+    <state_interface name="orientation.z"/>
+    <state_interface name="orientation.w"/>
+    <state_interface name="angular_velocity.x"/>
+    <state_interface name="angular_velocity.y"/>
+    <state_interface name="angular_velocity.z"/>
+    <state_interface name="linear_acceleration.x"/>
+    <state_interface name="linear_acceleration.y"/>
+    <state_interface name="linear_acceleration.z"/>
+    <parameter name="frame_id">imu_link</parameter>
+  </sensor>
+</ros2_control>
 <gazebo reference="base_link">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
   <gravity>true</gravity>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Yaw-Hip_Pitch_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Pitch-Knee_Pitch_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Foot_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Yaw-Hip_Pitch_2">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Pitch-Knee_Pitch_2">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Foot_2">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Yaw-Hip_Pitch_3">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Pitch-Knee_Pitch_3">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Foot_3">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Yaw-Hip_Pitch_4">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Hip_Pitch-Knee_Pitch_4">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Foot_4">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Leg_Base_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="Leg_Base_2">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="Leg_Base_3">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="Leg_Base_4">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="Layer_Second_with_Spacer_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="AIIT-Layer_Third_v9_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Green</material>
 </gazebo>
 
 <gazebo reference="2XC430_v1_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Black</material>
 </gazebo>
 
 <gazebo reference="Pan-Tilt_Unit_v5_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Silver</material>
 </gazebo>
 
 <gazebo reference="OpenCR_v1_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Grey</material>
 </gazebo>
 
 <gazebo reference="Raspberry_Pi_4_Model_B_v1_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Grey</material>
 </gazebo>
 
 <gazebo reference="3P_JST_Expansion_Board_v1_1">
-  <material>${body_color}</material>
-  <mu1>0.2</mu1>
-  <mu2>0.2</mu2>
-  <selfCollide>true</selfCollide>
+  <mu1>1.0</mu1>
+  <mu2>1.0</mu2>
+  <kp>500000.0</kp>
+  <kd>10.0</kd>
+  <minDepth>0.001</minDepth>
+  <maxVel>0.1</maxVel>
+  <selfCollide>false</selfCollide>
+  <material>Gazebo/Grey</material>
+</gazebo>
+
+<gazebo reference="imu_link">
+  <sensor name="imu_sensor" type="imu">
+    <update_rate>400.0</update_rate>
+    <always_on>true</always_on>
+    <visualize>false</visualize>
+    <imu>
+      <angular_velocity>
+        <noise type="gaussian">
+          <mean>0.0</mean>
+          <stddev>0.0001</stddev>
+        </noise>
+      </angular_velocity>
+      <linear_acceleration>
+        <noise type="gaussian">
+          <mean>0.0</mean>
+          <stddev>0.001</stddev>
+        </noise>
+      </linear_acceleration>
+    </imu>
+  </sensor>
 </gazebo>
 
 </robot>

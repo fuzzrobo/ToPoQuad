@@ -7,7 +7,7 @@ https://github.com/ROBOTIS-GIT/open_manipulator/blob/foxy-devel/open_manipulator
 <robot name="topoquad" xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
 <material name="silver">
-  <color rgba="0.300 0.300 0.300 1.000"/>
+  <color rgba="0.900 0.900 0.900 1.000"/>
 </material>
 
 <material name="light_green">

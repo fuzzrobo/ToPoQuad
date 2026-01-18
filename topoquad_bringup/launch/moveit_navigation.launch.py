@@ -55,7 +55,7 @@ def generate_launch_description():
             [
                 FindPackageShare('turtlebot3_lime_navigation2'),
                 'map',
-                'turtlebot3_world.yaml'
+                'topoquad_world.yaml'
             ]
         )
     )

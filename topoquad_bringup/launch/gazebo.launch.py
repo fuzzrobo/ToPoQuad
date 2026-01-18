@@ -47,24 +47,25 @@ def generate_launch_description():
     start_rviz = LaunchConfiguration('start_rviz')
     prefix = LaunchConfiguration('prefix')
     use_sim = LaunchConfiguration('use_sim')
+    controller_config = LaunchConfiguration('controller_config')
 
     world = LaunchConfiguration(
         'world',
         default=PathJoinSubstitution(
             [
-                FindPackageShare('turtlebot3_lime_bringup'),
+                FindPackageShare('topoquad_bringup'),
                 'worlds',
-                'turtlebot3_world.model'
+                'topoquad_world.model'
             ]
         )
     )
 
     pose = {'x': LaunchConfiguration('x_pose', default='-2.00'),
-            'y': LaunchConfiguration('y_pose', default='-0.50'),
-            'z': LaunchConfiguration('z_pose', default='0.01'),
+            'y': LaunchConfiguration('y_pose', default='0.00'),
+            'z': LaunchConfiguration('z_pose', default='0.10'),
             'R': LaunchConfiguration('roll', default='0.00'),
             'P': LaunchConfiguration('pitch', default='0.00'),
-            'Y': LaunchConfiguration('yaw', default='0.00')}
+            'Y': LaunchConfiguration('yaw', default='-1.57')}
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -83,6 +84,17 @@ def generate_launch_description():
             description='Start robot in Gazebo simulation.'),
 
         DeclareLaunchArgument(
+            'controller_config',
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare('topoquad_bringup'),
+                    'config',
+                    'gazebo_controller_manager.yaml',
+                ]
+            ),
+            description='Path to ros2_control controller manager configuration file.'),
+
+        DeclareLaunchArgument(
             'world',
             default_value=world,
             description='Directory of gazebo world file'),
@@ -90,32 +102,32 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'x_pose',
             default_value=pose['x'],
-            description='position of turtlebot3'),
+            description='Initial x position of topoquad'),
 
         DeclareLaunchArgument(
             'y_pose',
             default_value=pose['y'],
-            description='position of turtlebot3'),
+            description='Initial y position of topoquad'),
 
         DeclareLaunchArgument(
             'z_pose',
             default_value=pose['z'],
-            description='position of turtlebot3'),
+            description='Initial z position of topoquad'),
 
         DeclareLaunchArgument(
             'roll',
             default_value=pose['R'],
-            description='orientation of turtlebot3'),
+            description='Initial roll of topoquad'),
 
         DeclareLaunchArgument(
             'pitch',
             default_value=pose['P'],
-            description='orientation of turtlebot3'),
+            description='Initial pitch of topoquad'),
 
         DeclareLaunchArgument(
             'yaw',
             default_value=pose['Y'],
-            description='orientation of turtlebot3'),
+            description='Initial yaw of topoquad'),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([ThisLaunchFileDir(), '/base.launch.py']),
@@ -123,6 +135,7 @@ def generate_launch_description():
                 'start_rviz': start_rviz,
                 'prefix': prefix,
                 'use_sim': use_sim,
+                'controller_config': controller_config,
             }.items(),
         ),
 
@@ -149,7 +162,7 @@ def generate_launch_description():
             executable='spawn_entity.py',
             arguments=[
                 '-topic', 'robot_description',
-                '-entity', 'turtlebot3_lime_system',
+                '-entity', 'topoquad_system',
                 '-x', pose['x'], '-y', pose['y'], '-z', pose['z'],
                 '-R', pose['R'], '-P', pose['P'], '-Y', pose['Y'],
                 ],

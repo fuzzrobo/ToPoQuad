@@ -74,11 +74,26 @@ def generate_launch_description():
         )
     )
 
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'controller_config',
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare('topoquad_bringup'),
+                    'config',
+                    'gazebo_controller_manager.yaml',
+                ]
+            ),
+            description='Path to ros2_control controller manager configuration file.'
+        )
+    )
+
     start_rviz = LaunchConfiguration('start_rviz')
     prefix = LaunchConfiguration('prefix')
     use_sim = LaunchConfiguration('use_sim')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     fake_sensor_commands = LaunchConfiguration('fake_sensor_commands')
+    controller_config = LaunchConfiguration('controller_config')
 
     urdf_file = Command(
         [
@@ -86,9 +101,9 @@ def generate_launch_description():
             ' ',
             PathJoinSubstitution(
                 [
-                    FindPackageShare('turtlebot3_lime_description'),
+                    FindPackageShare('topoquad_description'),
                     'urdf',
-                    'turtlebot3_lime.urdf.xacro'
+                    'topoquad.xacro'
                 ]
             ),
             ' ',
@@ -106,19 +121,13 @@ def generate_launch_description():
         ]
     )
 
-    controller_manager_config = PathJoinSubstitution(
-        [
-            FindPackageShare('turtlebot3_lime_bringup'),
-            'config',
-            'hardware_controller_manager.yaml',
-        ]
-    )
+    controller_manager_config = controller_config
 
     rviz_config_file = PathJoinSubstitution(
         [
-            FindPackageShare('turtlebot3_lime_bringup'),
+            FindPackageShare('topoquad_description'),
             'rviz',
-            'turtlebot3_lime.rviz'
+            'model.rviz'
         ]
     )
 
@@ -128,10 +137,6 @@ def generate_launch_description():
         parameters=[
             {'robot_description': urdf_file},
             controller_manager_config
-        ],
-        remappings=[
-            ('~/cmd_vel_unstamped', 'cmd_vel'),
-            ('~/odom', 'odom')
         ],
         output="both",
         condition=UnlessCondition(use_sim))
@@ -154,36 +159,42 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
+        arguments=[
+            'joint_state_broadcaster',
+            '--controller-manager', '/controller_manager',
+        ],
         output='screen',
-    )
-
-    diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['diff_drive_controller', '-c', '/controller_manager'],
-        output='screen',
-        condition=UnlessCondition(use_sim)
     )
 
     imu_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['imu_broadcaster'],
+        arguments=[
+            'imu_broadcaster',
+            '--controller-manager', '/controller_manager',
+        ],
         output='screen',
     )
 
-    arm_controller_spawner = Node(
+    leg_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['arm_controller'],
+        arguments=[
+            'leg_controller',
+            '--controller-manager', '/controller_manager',
+            '--param-file', controller_config,
+        ],
         output='screen',
     )
 
-    gripper_controller_spawner = Node(
+    neck_controller_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['gripper_controller'],
+        arguments=[
+            'neck_controller',
+            '--controller-manager', '/controller_manager',
+            '--param-file', controller_config,
+        ],
         output='screen',
     )
 
@@ -194,14 +205,6 @@ def generate_launch_description():
         )
     )
 
-    delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner = \
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=joint_state_broadcaster_spawner,
-                on_exit=[diff_drive_controller_spawner],
-            )
-        )
-
     delay_imu_broadcaster_spawner_after_joint_state_broadcaster_spawner = \
         RegisterEventHandler(
             event_handler=OnProcessExit(
@@ -210,19 +213,19 @@ def generate_launch_description():
             )
         )
 
-    delay_arm_controller_spawner_after_joint_state_broadcaster_spawner = \
+    delay_leg_controller_spawner_after_joint_state_broadcaster_spawner = \
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=joint_state_broadcaster_spawner,
-                on_exit=[arm_controller_spawner],
+                on_exit=[leg_controller_spawner],
             )
         )
 
-    delay_gripper_controller_spawner_after_joint_state_broadcaster_spawner = \
+    delay_neck_controller_spawner_after_leg_controller_spawner = \
         RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=joint_state_broadcaster_spawner,
-                on_exit=[gripper_controller_spawner],
+                target_action=leg_controller_spawner,
+                on_exit=[neck_controller_spawner],
             )
         )
 
@@ -231,10 +234,9 @@ def generate_launch_description():
         robot_state_pub_node,
         joint_state_broadcaster_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_diff_drive_controller_spawner_after_joint_state_broadcaster_spawner,
         delay_imu_broadcaster_spawner_after_joint_state_broadcaster_spawner,
-        delay_arm_controller_spawner_after_joint_state_broadcaster_spawner,
-        delay_gripper_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_leg_controller_spawner_after_joint_state_broadcaster_spawner,
+        delay_neck_controller_spawner_after_leg_controller_spawner,
     ]
 
     return LaunchDescription(declared_arguments + nodes)
