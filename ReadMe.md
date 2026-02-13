@@ -227,12 +227,12 @@ Select ROS message という window では `/topoquad/legs/command`, `/topoquad/
 ### Dynamixel の Gain などを変えたくなったら
 
 `topoquad_master`パッケージ内のソースコードを編集する必要があります．
-例えば足に用いるXC330についてであれば，`/topoquad_master/src/leg_node.cpp` の以下の領域にある，`dynamixel_handler::msg::DxlCommandsX dyn_msg` の各フィールドを修正することで設定の変更が可能です．
+例えば足に用いるXC330についてであれば，`/topoquad_master/src/leg_node.cpp` の以下の領域にある，`dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg` の各フィールドを修正することで設定の変更が可能です．
 ```cpp
     void main_loop(){
         auto now = this->get_clock()->now();
         if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
-        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
         for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
             // ... 略 ...
             dyn_msg.status.id_list.push_back( leg.get().hip_yaw_.id_);  
@@ -245,7 +245,7 @@ Select ROS message という window では `/topoquad/legs/command`, `/topoquad/
         dyn_cmd_pub_->publish(dyn_msg);
     }
 ```
-詳細な使い方は，[`dynamixel_handler`のmsg型についての説明](https://github.com/fuzzrobo/DynamixelHandler-ros2/tree/2bdd1d680254c578aa08ddb92ecb7424061ded0f/msg#dynamixel_handlermsgdxlcommandsx-type)を参照してください．
+詳細な使い方は，[`dynamixel_handler_msgs` の msg 定義](https://github.com/ROBOTIS-JAPAN-GIT/DynamixelHandler-ros2/tree/main/dynamixel_handler_msgs/msg)を参照してください．
 
 ### Dynamixel の Baudrate を変えたくなったら
 
