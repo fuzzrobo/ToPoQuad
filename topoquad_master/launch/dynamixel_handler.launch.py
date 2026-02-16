@@ -12,7 +12,7 @@ def generate_launch_description():
 
     dynamixel_handler_node = Node(
         package='dynamixel_handler',
-        executable='dynamixel_handler_node',
+        executable='dynamixel_handler',
         name='dxl_handler',
         namespace='topoquad',
         output='screen',

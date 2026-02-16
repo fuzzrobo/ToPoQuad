@@ -4,8 +4,8 @@
 #include <topoquad_master/common.hpp>
 
 #include <eigen3/Eigen/Dense>
-#include "dynamixel_handler/msg/dxl_commands_x.hpp"
-#include "dynamixel_handler/msg/dxl_states.hpp"
+#include "dynamixel_handler_msgs/msg/dxl_commands_x.hpp"
+#include "dynamixel_handler_msgs/msg/dxl_states.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/vector3.hpp"

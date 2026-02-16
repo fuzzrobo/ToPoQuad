@@ -14,7 +14,7 @@ def generate_launch_description():
 
     node1 = Node(
         package="dynamixel_handler",
-        executable='dynamixel_unify_baudrate_node',
+        executable='dynamixel_unify_baudrate',
         name='dxl_unify_handler',
         namespace='',
         output='screen',

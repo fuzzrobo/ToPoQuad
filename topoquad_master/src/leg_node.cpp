@@ -5,12 +5,12 @@ using std::string;
 using std::vector;
 
 class LegNode : public rclcpp::Node {
-    rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
+    rclcpp::Publisher<dynamixel_handler_msgs::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
     rclcpp::Publisher<topoquad_msgs::msg::QuadRobotLeg>::SharedPtr leg_state_p_pub_, leg_state_g_pub_, leg_state_t_pub_;
     // rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
 
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotLeg>::SharedPtr leg_command_sub_;
-    rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
+    rclcpp::Subscription<dynamixel_handler_msgs::msg::DxlStates>::SharedPtr dyn_state_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Time prev_cmd_time_;
@@ -97,7 +97,7 @@ class LegNode : public rclcpp::Node {
         goal_leg_bl_ = target_leg_bl_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler_msgs::msg::DxlCommandsX>("dynamixel/commands/x", 10);
         leg_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/present", 10);
         leg_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/goal", 10);
         leg_state_t_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotLeg>("legs/state/target", 10);
@@ -106,7 +106,7 @@ class LegNode : public rclcpp::Node {
         // Subscribers
         leg_command_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotLeg>(
             "legs/command", 10, std::bind(&LegNode::leg_command_cb, this, _1));
-        dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DxlStates>(
+        dyn_state_sub_ = this->create_subscription<dynamixel_handler_msgs::msg::DxlStates>(
             "dynamixel/states", 10, std::bind(&LegNode::dyn_state_cb, this, _1));
 
         using namespace std::chrono_literals;
@@ -118,7 +118,7 @@ class LegNode : public rclcpp::Node {
     void main_loop(){
         auto now = this->get_clock()->now();
         if (now.seconds() - prev_cmd_time_.seconds() < 0.2) return;
-        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
         for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
             if (true){
                 dyn_msg.current_base_position_control.id_list.push_back( leg.get().hip_yaw_.id_);  
@@ -193,7 +193,7 @@ class LegNode : public rclcpp::Node {
         BroadcastLegState("target");
     }
 
-    void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
+    void dyn_state_cb(const dynamixel_handler_msgs::msg::DxlStates::SharedPtr msg) {
         for (auto& leg : {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)}) {
             if (auto& p=msg->present; !p.id_list.empty()) 
                 for (size_t i = 0; i < p.id_list.size(); i++) {
@@ -231,7 +231,7 @@ class LegNode : public rclcpp::Node {
         if (auto& g=msg->gain; !g.id_list.empty()){
             if (g.velocity_p_gain_pulse[0] == gain["dxl_vel_p"] && 
                 g.position_p_gain_pulse[0] == gain["dxl_pos_p"] ) return;
-            dynamixel_handler::msg::DxlCommandsX dyn_msg;
+            dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
             for (auto& leg : {ref(goal_leg_fr_), ref(goal_leg_fl_), ref(goal_leg_br_), ref(goal_leg_bl_)}) {
                 dyn_msg.gain.id_list.push_back( leg.get().hip_yaw_.id_);  
                 dyn_msg.gain.id_list.push_back( leg.get().hip_pitch_.id_);
@@ -252,7 +252,7 @@ class LegNode : public rclcpp::Node {
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
         auto now = this->get_clock()->now();
 
-        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
         auto& ctrl_msg = dyn_msg.current_base_position_control;
         static double diff_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
@@ -309,7 +309,7 @@ class LegNode : public rclcpp::Node {
         static vector<std::reference_wrapper<Leg>> presents = {ref(present_leg_fr_), ref(present_leg_fl_), ref(present_leg_br_), ref(present_leg_bl_)};
         auto now = this->get_clock()->now();
 
-        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
         auto& ctrl_msg = dyn_msg.velocity_control;
         static double diff_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double diff_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};
@@ -360,7 +360,7 @@ class LegNode : public rclcpp::Node {
         dt = 0.8 * dt + 0.2 * (now.seconds() - prev.seconds());
         prev = now;  // ほぼ定数になるはずの値なので，平滑化して扱う．
 
-        dynamixel_handler::msg::DxlCommandsX dyn_msg;
+        dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
         auto& ctrl_msg = dyn_msg.current_base_position_control;
         static double ang_hy_pre[4] = {0.0, 0.0, 0.0, 0.0};
         static double ang_hp_pre[4] = {0.0, 0.0, 0.0, 0.0};

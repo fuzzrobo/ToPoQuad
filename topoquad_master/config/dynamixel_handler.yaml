@@ -1,82 +1,91 @@
 topoquad:
   dxl_handler:
     ros__parameters:
-    # 開発用
-        debug: true # true: デバイスとの接続に失敗してもエラーを出力しない/ false: エラーを出力して終了する
-        no_use_command_line: false # true: プログラム用のトピックのみ使用する/ false: コマンドライン用のトピックも出力する
-        # dummy_servo_id_list: [2,3,4,12,13,14,22,23,24,32,33,34,42,43] # ダミーのサーボを作成する,同じIDのサーボが存在する場合でもダミーが優先される． 
-    # 通信機器の設定
-        device_name: /dev/ttyACM0 # 通信するデバイス名
-        baudrate: 3000000 # 通信速度
-        latency_timer: 1 # 通信のインターバル
-    # 通信の設定
-        dyn_comm/retry_num: 5
-        dyn_comm/inerval_msec: 4
-        dyn_comm/verbose: false
-    # サーボの設定
-        init/expected_servo_num: 0
-        init/auto_search:
-            min_id: 0
-            max_id: 43
-            retry_times: 3
-        init/hardware_error_auto_clean: true # 初期化時に Hardware error を自動でクリアするかどうか
-        init/torque_auto_enable: true # 初期化時に Torque を自動でONにするかどうか
-        term/torque_auto_disable: true # 終了時に Torque を自動でOFFにするかどうか
-    # デフォルト値の設定
-        default/profile_acc: 0.0 # deg/s^2
-        default/profile_vel: 600.0 # deg/s
-    # ループの設定
-        loop_rate: 200 # メインループの周期
-        verbose_ratio: 300 # メインループのlog出力の割合(処理時間，通信の成功率), ex 100なら100回に1回出力
-        pub_outdated_present_value: true # 最新でないpresent_XXXをpublishするかどうか. false ならば 直近のループでreadした Present の要素のみmsgに含められる．
-        pub_ratio/present: # present_XXXを読み取る割合
-            pwm:                  0 # この回数に一回present_pwmを読み取る
-            current:              2 # この回数に一回present_currentを読み取る
-            velocity:             2 # この回数に一回present_velocityを読み取る
-            position:             2 # この回数に一回present_positionを読み取る
-            velocity_trajectory:  0 # この回数に一回velocity_trajectoryを読み取る
-            position_trajectory:  0 # この回数に一回position_trajectoryを読み取る
-            input_voltage:       290 # この回数に一回present_input_voltageを読み取る
-            temperature:         290 # この回数に一回present_temperatureを読み取る
-        pub_ratio/status: 203 # この回数に一回 Status を読み取る, 0=初回のみ
-        pub_ratio/goal: 47  # この回数に一回 Goal を読み取る, 0=初回のみ
-        pub_ratio/gain: 1010 # この回数に一回 Gain を読み取る, 0=初回のみ
-        pub_ratio/limit: 3070 # この回数に一回 Limit を読み取る, 0=初回のみ
-        pub_ratio/error: 530 # この回数に一回 Hardware error を読み取る, 0=初回のみ
-    # Read/Write方式
-        method/fast_read: false
-        method/split_read: false
-        method/split_write: true
-    # デバッグ用
-        max_log_width: 6
-        verbose/callback: false
-        verbose/write_goal: false
-        verbose/write_gain: false
-        verbose/write_limit: false
-        verbose/read_status/raw: false
-        verbose/read_status/err: false
-        verbose/read_present/raw: false
-        verbose/read_present/err: false
-        verbose/read_goal/raw: false
-        verbose/read_goal/err: false
-        verbose/read_gain/raw: false
-        verbose/read_gain/err: false
-        verbose/read_limit/raw: false
-        verbose/read_limit/err: false
-        verbose/read_hardware_error: false
-    # Optonal機能
-        option/external_port:
-            use : false # External Portの機能を使うかどうか
-            pub_ratio/data : 2   # この回数に一回 Data を読み取る.
-            pub_ratio/mode : 100 # この回数に一回 Mode を読み取る, ROM値なので大きくても問題ない．
-            verbose/callback: false
-            verbose/write: false
-            verbose/read/raw: false
-            verbose/read/err: false
-        option/imu_opencr:
-            use : true
-            pub_ratio : 2
-            verbose/callback: false
-            verbose/write: false
-            verbose/read/raw: false
-            verbose/read/err: false
+      # 開発用（main.cpp 冒頭で参照）
+      debug: true # true: ポートopen失敗/サーボ未検出/検出数不一致でも停止しない, false: 上記で停止する
+      no_use_command_line: false # true: CLI向けtopic(dynamixel/command/*, dynamixel/state/*)を作らない
+
+      # 通信機器の設定（DynamixelCommunicator の初期化に使用）
+      device_name: /dev/ttyACM0 # 接続先デバイスパス
+      baudrate: 3000000 # DYNAMIXELバス通信速度 [bps]
+      latency_timer: 1 # USB-Serial latency_timer [ms]
+
+      # 通信リトライ設定（dyn_comm_.set_retry_config）
+      dyn_comm/retry_num: 5 # 1回の通信で再試行する回数
+      dyn_comm/inerval_msec: 4 # 再試行間隔 [ms]
+      dyn_comm/verbose: false # 通信層の詳細ログ
+
+      # サーボ探索/初期化/終了
+      init/dummy_servo_list: [-1] # 指定IDをダミー化して実機より優先（<0 or >=255 は実装側で除外）
+      init/baudrate_auto_set: false # 起動時に全ID/全baudへ書き込みして baudrate を統一する
+      init/used_servo_series: {X: true, P: false, Pro: false} # 探索・制御対象シリーズ
+      init/expected_servo_num: 0 # >0: 検出台数の一致チェックを有効化, 0: 台数チェックしない
+      init/servo_auto_search: {min_id: 0, max_id: 43, retry_times: 3} # 探索ID範囲と再探索回数
+      init/hardware_error_auto_clean: true # 初期化時に Hardware Error を自動クリア
+      init/torque_auto_enable:  true # 初期化完了後に torque enable
+      term/torque_auto_disable: true # 終了時に torque disable
+      term/servo_auto_stop:     true # 終了時に電流/速度系目標を0相当にして停止
+
+      # デフォルト制御値（個別指定が無いIDへ適用）
+      default/profile_acc: 0.0 # Profile Acceleration [deg/s^2]
+      default/profile_vel: 600.0 # Profile Velocity [deg/s]
+      default/return_delay_time: 0.0 # Return Delay Time [us]
+
+      # メインループ設定（main.cpp / MainLoop で参照）
+      loop_rate: 200 # メインループ周波数 [Hz]
+      verbose_ratio: 300 # メインループ統計ログの出力周期（N回に1回, 0で初回のみ）
+      pub_outdated_present_value: true # true: 本フレームで読み込まなかった present も前回値を含めてpublish, false: 本フレームで読んだ項目のみ
+      pub_ratio/present: # Present読取周期（Nループに1回, 0で初回のみ）
+        pwm:                  0 # present_pwm
+        current:              2 # present_current
+        velocity:             2 # present_velocity
+        position:             2 # present_position
+        velocity_trajectory:  0 # velocity_trajectory
+        position_trajectory:  0 # position_trajectory
+        input_voltage:      290 # present_input_voltage
+        temperature:        290 # present_temperature
+      pub_ratio/status: 203 # status読取周期（Nループに1回, 0で初回のみ）
+      pub_ratio/goal:    47 # goal読取周期（Nループに1回, 0で初回のみ）
+      pub_ratio/gain:  1010 # gain読取周期（Nループに1回, 0で初回のみ）
+      pub_ratio/limit: 3070 # limit読取周期（Nループに1回, 0で初回のみ）
+      pub_ratio/error:  530 # hardware_error読取周期（Nループに1回, 0で初回のみ）
+
+      # Read/Write方式（通信量と安定性のトレードオフ）
+      method/fast_read:   false # FastSyncReadを使う（電流センサ非対応機種が混在すると実装側で自動無効化）
+      method/split_read:  false # true: 一括Readを小分けにして実行（安定寄り）
+      method/split_write:  true # true: 一括Writeを小分けにして実行（安定寄り）
+
+      # デバッグ/保守
+      max_log_width: 6 # control_tableログの横幅
+      verbose/callback:     false # callback開始/終了ログ
+      verbose/write_status: false # status書込ログ
+      verbose/write_goal:   false # goal書込ログ
+      verbose/write_gain:   false # gain書込ログ
+      verbose/write_limit:  false # limit書込ログ
+      verbose/read_status:  {raw: false, err: false} # raw: 読取値表示, err: 通信失敗表示
+      verbose/read_present: {raw: false, err: false}
+      verbose/read_goal:    {raw: false, err: false}
+      verbose/read_gain:    {raw: false, err: false}
+      verbose/read_limit:   {raw: false, err: false}
+      verbose/read_hardware_error: false # hardware error詳細ログ
+      no_response_id_auto_remove_count: 0 # >0: 連続ping失敗回数が閾値超えでIDを自動除外, 0: 無効
+
+      # Optional機能（main.cpp の option/* .use で有効化）
+      option/external_port:
+        use: false # XH/P/PRO の External Port 機能を有効化
+        pub_ratio/data:   2 # data読取周期（Nループに1回）
+        pub_ratio/mode: 100 # mode読取周期（Nループに1回, ROMなので長周期で可）
+        verbose/callback: false # callbackログ
+        verbose/write:    false # writeログ
+        verbose/read:     {raw: false, err: false} # readログ
+      option/imu_opencr:
+        use: true # OpenCR経由のIMU publishを有効化（topic: dynamixel/imu/raw）
+        pub_ratio:    2 # IMU読取/publish周期（Nループに1回）
+        opencr_id:   40 # OpenCRの仮想DYNAMIXEL ID
+        model_number: 0 # OpenCRの仮想DYNAMIXEL model number, 起動時に不一致なら初期化中断
+        frame_id: base_link # sensor_msgs/msg/Imu.header.frame_id
+        adjust/rpy_deg: [0.0, 0.0, 0.0] # OpenCR座標 -> robot座標 の固定回転 [roll, pitch, yaw] [deg]
+        adjust/flip_z_axis:  true # true: z反転させOpenCRの左手系から，ROSの右手系に補正
+        verbose/callback:   false # calibration callbackログ
+        verbose/write:      false # calibration command書込ログ
+        verbose/read:       {raw: false, err: false} # IMU読取ログ

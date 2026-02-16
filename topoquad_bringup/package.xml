@@ -20,6 +20,7 @@
   <exec_depend>xacro</exec_depend>
 
   <exec_depend>topoquad_master</exec_depend>
+  <exec_depend>dynamixel_handler</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

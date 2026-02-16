@@ -1,10 +1,10 @@
 #include <topoquad_master/neck_node.hpp>
 
 class NeckNode : public rclcpp::Node {
-    rclcpp::Publisher<dynamixel_handler::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
+    rclcpp::Publisher<dynamixel_handler_msgs::msg::DxlCommandsX>::SharedPtr dyn_cmd_pub_;
     rclcpp::Publisher<topoquad_msgs::msg::QuadRobotNeck>::SharedPtr neck_state_p_pub_, neck_state_g_pub_;
 
-    rclcpp::Subscription<dynamixel_handler::msg::DxlStates>::SharedPtr dyn_state_sub_;
+    rclcpp::Subscription<dynamixel_handler_msgs::msg::DxlStates>::SharedPtr dyn_state_sub_;
     rclcpp::Subscription<topoquad_msgs::msg::QuadRobotNeck>::SharedPtr neck_command_sub_;
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -25,12 +25,12 @@ class NeckNode : public rclcpp::Node {
         present_neck_ = target_neck_;
 
         // Publishers
-        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler::msg::DxlCommandsX>("dynamixel/commands/x", 10);
+        dyn_cmd_pub_ = this->create_publisher<dynamixel_handler_msgs::msg::DxlCommandsX>("dynamixel/commands/x", 10);
         neck_state_p_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotNeck>("neck/state/present", 10);
         neck_state_g_pub_ = this->create_publisher<topoquad_msgs::msg::QuadRobotNeck>("neck/state/goal", 10);
 
         // Subscribers
-        dyn_state_sub_ = this->create_subscription<dynamixel_handler::msg::DxlStates>(
+        dyn_state_sub_ = this->create_subscription<dynamixel_handler_msgs::msg::DxlStates>(
             "dynamixel/states", 10, std::bind(&NeckNode::dyn_state_cb, this, _1));
         neck_command_sub_ = this->create_subscription<topoquad_msgs::msg::QuadRobotNeck>(
             "neck/command", 10, std::bind(&NeckNode::neck_command_cb, this, _1));
@@ -42,7 +42,7 @@ class NeckNode : public rclcpp::Node {
    private:
     void timer_cb() {
         if (target_neck_.is_updated_ || target_neck_ != goal_neck_) {
-            dynamixel_handler::msg::DxlCommandsX dyn_msg;
+            dynamixel_handler_msgs::msg::DxlCommandsX dyn_msg;
             auto& ctrl_msg = dyn_msg.position_control;
             ctrl_msg.id_list.push_back(target_neck_.pan_.id_);
             ctrl_msg.id_list.push_back(target_neck_.tilt_.id_);
@@ -76,7 +76,7 @@ class NeckNode : public rclcpp::Node {
             goal_neck_.is_updated_ = false;
         }
     }
-    void dyn_state_cb(const dynamixel_handler::msg::DxlStates::SharedPtr msg) {
+    void dyn_state_cb(const dynamixel_handler_msgs::msg::DxlStates::SharedPtr msg) {
         for (size_t i = 0; i < msg->present.id_list.size(); i++) {
             if (msg->present.id_list[i] == present_neck_.pan_.id_) {
                 present_neck_.pan_.servo_velocity_ = msg->present.velocity_deg_s[i] * deg2rad;

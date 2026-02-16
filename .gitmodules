@@ -1,3 +1,3 @@
-[submodule "dynamixel_handler"]
-	path = dynamixel_handler
+[submodule "DynamixelHandler"]
+	path = DynamixelHandler
 	url = https://github.com/fuzzrobo/DynamixelHandler-ros2.git
