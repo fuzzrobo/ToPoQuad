@@ -23,9 +23,9 @@ launch では namespace `topoquad` 付きで起動しているので，実際の
 `leg_node` のロボット固有値は `config/topoquad_master.yaml` のパラメータとして持つ．
 対象は以下。
  - 脚寸法: `legs.link_lengths.*`
- - 脚取付位置/角度: `legs.mounts.<fr|fl|br|bl>.*`
+ - 脚取付位置/角度: `legs.mounts.<fr|fl|br|bl>.{position_polar,yaw_deg}` (`position_polar=[radius_m, theta_deg]`)
  - 関節特性: `legs.joints.<fr|fl|br|bl>.<joint>.{id,gear_ratio,torque_ratio,default_torque}`
- - 初期姿勢: `legs.initial_pose.<fr|fl|br|bl>`
+ - 初期姿勢: `legs.initial_pose_deg.<fr|fl|br|bl>`
 
 ### Neck/首 (optional)
 topoquad_master pkg の neck_node が 持っている情報.

@@ -1,0 +1,30 @@
+/topoquad/leg_node:
+    ros__parameters:
+        legs:
+          link_lengths:
+            hip_yaw: 0.0445
+            hip_pitch: 0.0445
+            knee_pitch: 0.0715
+          mounts:
+            fr: {yaw_deg:  45.0, position_polar: [0.063,  45.0] } # [radius_m, theta_deg]
+            fl: {yaw_deg: 135.0, position_polar: [0.063, 135.0] } # [radius_m, theta_deg]
+            br: {yaw_deg: 315.0, position_polar: [0.063, 315.0] } # [radius_m, theta_deg]
+            bl: {yaw_deg: 225.0, position_polar: [0.063, 225.0] } # [radius_m, theta_deg]
+          joints:
+            fr:
+              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.00115, default_torque: 0.6} # 0.00115 = +0.92Nm / 800mA
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+            fl:
+              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+            br:
+              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+            bl:
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
+

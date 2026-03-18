@@ -32,8 +32,8 @@ struct LinkLengths {
 };
 
 struct MountConfig {
-  array<double, 2> position_xy;
-  double yaw;
+  array<double, 2> position_Rtheta;
+  double yaw_deg;
   int sign;
 };
 
@@ -49,7 +49,7 @@ struct LegProfile {
   JointConfig hip_yaw;
   JointConfig hip_pitch;
   JointConfig knee_pitch;
-  array<double, 3> initial_pose;
+  array<double, 3> initial_pose_deg;
 };
 
 struct RobotProfile {
@@ -95,17 +95,14 @@ inline vector<double> LegInverseStatics(const vector<double>& angles, const Pose
 
   const double t1 = angles[0], t2 = angles[1], t3 = angles[2];
   const double phi  = fixed_pose.theta + sign * t1;
-  const double l   = L.hip_pitch * cos(t2) + L.knee_pitch * cos(t2 + t3);
-  const double dl2 = -L.hip_pitch * sin(t2) - L.knee_pitch * sin(t2 + t3);
-  const double dl3 = -L.knee_pitch * sin(t2 + t3);
 
-  const double j1x = -sign * (L.hip_yaw + l) * sin(phi);
-  const double j1y =  sign * (L.hip_yaw + l) * cos(phi);
-  const double j2x =  cos(phi) * dl2;
-  const double j2y =  sin(phi) * dl2;
+  const double j1x = -sign * (L.hip_yaw + L.hip_pitch * cos(t2) + L.knee_pitch * cos(t2 + t3)) * sin(phi);
+  const double j1y =  sign * (L.hip_yaw + L.hip_pitch * cos(t2) + L.knee_pitch * cos(t2 + t3)) * cos(phi);
+  const double j2x =  cos(phi) * (-L.hip_pitch * sin(t2) - L.knee_pitch * sin(t2 + t3));
+  const double j2y =  sin(phi) * (-L.hip_pitch * sin(t2) - L.knee_pitch * sin(t2 + t3));
   const double j2z = -(L.hip_pitch * cos(t2) + L.knee_pitch * cos(t2 + t3));
-  const double j3x =  cos(phi) * dl3;
-  const double j3y =  sin(phi) * dl3;
+  const double j3x =  cos(phi) * (-L.knee_pitch * sin(t2 + t3));
+  const double j3y =  sin(phi) * (-L.knee_pitch * sin(t2 + t3));
   const double j3z = -L.knee_pitch * cos(t2 + t3);
 
   const double tau0 = j1x * force_world.x + j1y * force_world.y;
@@ -142,15 +139,15 @@ class Leg {
   }
 
   void initialize(const LegProfile& profile) {
-    fixed_pose_.x     = profile.mount.position_xy[0];
-    fixed_pose_.y     = profile.mount.position_xy[1];
-    fixed_pose_.theta = profile.mount.yaw;
-    auto p_hy=profile.hip_yaw   ; 
-    auto p_hp=profile.hip_pitch ; 
-    auto p_kp=profile.knee_pitch; 
-    hip_yaw_    = Joint(p_hy.id, p_hy.gear_ratio, profile.initial_pose[0], p_hy.torque_ratio, p_hy.default_torque);
-    hip_pitch_  = Joint(p_hp.id, p_hp.gear_ratio, profile.initial_pose[1], p_hp.torque_ratio, p_hp.default_torque);
-    knee_pitch_ = Joint(p_kp.id, p_kp.gear_ratio, profile.initial_pose[2], p_kp.torque_ratio, p_kp.default_torque);
+    fixed_pose_.x     = profile.mount.position_Rtheta[0] * cos(profile.mount.position_Rtheta[1] * deg_to_rad);
+    fixed_pose_.y     = profile.mount.position_Rtheta[0] * sin(profile.mount.position_Rtheta[1] * deg_to_rad);
+    fixed_pose_.theta = profile.mount.yaw_deg * deg_to_rad;
+    const auto& p_hy = profile.hip_yaw;
+    const auto& p_hp = profile.hip_pitch;
+    const auto& p_kp = profile.knee_pitch;
+    hip_yaw_    = Joint(p_hy.id, p_hy.gear_ratio, profile.initial_pose_deg[0] * deg_to_rad, p_hy.torque_ratio, p_hy.default_torque);
+    hip_pitch_  = Joint(p_hp.id, p_hp.gear_ratio, profile.initial_pose_deg[1] * deg_to_rad, p_hp.torque_ratio, p_hp.default_torque);
+    knee_pitch_ = Joint(p_kp.id, p_kp.gear_ratio, profile.initial_pose_deg[2] * deg_to_rad, p_kp.torque_ratio, p_kp.default_torque);
 
     is_updated_   = true;
     updated_time_ = 0.0;
@@ -172,9 +169,9 @@ class Leg {
     is_updated_ = true;
   }
 
-  std::vector<double> GetJointAngles() const { return {hip_yaw_.joint_angle_, hip_pitch_.joint_angle_, knee_pitch_.joint_angle_};}
+  vector<double> GetJointAngles() const { return {hip_yaw_.joint_angle_, hip_pitch_.joint_angle_, knee_pitch_.joint_angle_};}
 
-  std::vector<double> GetJointTorques() const { return {hip_yaw_.joint_torque_, hip_pitch_.joint_torque_, knee_pitch_.joint_torque_};}
+  vector<double> GetJointTorques() const { return {hip_yaw_.joint_torque_, hip_pitch_.joint_torque_, knee_pitch_.joint_torque_};}
 
   bool is_updated_{true};
   double updated_time_{0.0};
@@ -192,35 +189,31 @@ inline RobotProfile MakeDefaultRobotProfile() {
   constexpr double torque_ratio      = 0.92 / 800.0;
   constexpr double default_torque    = 0.6;
   constexpr double zero              = 0.0;
-  constexpr double home_pitch        = pi / 4.0;
+  constexpr double home_pitch_deg    = 45.0;
 
   return RobotProfile{
       LinkLengths{hip_yaw_length, hip_pitch_length, knee_pitch_length},
       {{
-          {MountConfig{{base_radius * std::cos(1.0 * pi / 4.0),
-                        base_radius * std::sin(1.0 * pi / 4.0)}, 1.0 * pi / 4.0, +1},
+        {MountConfig{{base_radius, 45.0}, 45.0, +1},
            JointConfig{14, -1.0, torque_ratio, default_torque},
            JointConfig{13, +1.0, torque_ratio, default_torque},
            JointConfig{12, +1.0, torque_ratio, default_torque},
-           {zero, home_pitch, home_pitch}},
-          {MountConfig{{base_radius * std::cos(3.0 * pi / 4.0),
-                        base_radius * std::sin(3.0 * pi / 4.0)}, 3.0 * pi / 4.0, -1},
+         {zero, home_pitch_deg, home_pitch_deg}},
+        {MountConfig{{base_radius, 135.0}, 135.0, -1},
            JointConfig{24, +1.0, torque_ratio, default_torque},
            JointConfig{23, +1.0, torque_ratio, default_torque},
            JointConfig{22, +1.0, torque_ratio, default_torque},
-           {zero, home_pitch, home_pitch}},
-          {MountConfig{{base_radius * std::cos(7.0 * pi / 4.0),
-                        base_radius * std::sin(7.0 * pi / 4.0)}, 7.0 * pi / 4.0, +1},
+         {zero, home_pitch_deg, home_pitch_deg}},
+        {MountConfig{{base_radius, 315.0}, 315.0, +1},
            JointConfig{4, -1.0, torque_ratio, default_torque},
            JointConfig{3, +1.0, torque_ratio, default_torque},
            JointConfig{2, +1.0, torque_ratio, default_torque},
-           {zero, home_pitch, home_pitch}},
-          {MountConfig{{base_radius * std::cos(5.0 * pi / 4.0),
-                        base_radius * std::sin(5.0 * pi / 4.0)}, 5.0 * pi / 4.0, -1},
+         {zero, home_pitch_deg, home_pitch_deg}},
+        {MountConfig{{base_radius, 225.0}, 225.0, -1},
            JointConfig{34, +1.0, torque_ratio, default_torque},
            JointConfig{33, +1.0, torque_ratio, default_torque},
            JointConfig{32, +1.0, torque_ratio, default_torque},
-           {zero, home_pitch, home_pitch}},
+         {zero, home_pitch_deg, home_pitch_deg}},
       }}};
 }
 

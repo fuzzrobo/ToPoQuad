@@ -92,6 +92,8 @@ class NeckNode : public rclcpp::Node {
         present_neck_.tilt_.SetServoAngle(msg->present.position_deg[i] * deg_to_rad);
         present_neck_.tilt_.SetServoCurrent(msg->present.current_ma[i]);
       }
+      // TODO(ryo_michi): Legacy baseline updates publish flag even for unrelated IDs.
+      // Keep for refactor parity; tighten to ID-matched updates in a dedicated bugfix patch.
       present_neck_.is_updated_ = true;
     }
 
@@ -104,6 +106,8 @@ class NeckNode : public rclcpp::Node {
         goal_neck_.tilt_.SetServoAngle(msg->goal.position_deg[i] * deg_to_rad);
         goal_neck_.tilt_.SetServoCurrent(msg->goal.current_ma[i]);
       }
+      // TODO(ryo_michi): Legacy baseline marks goal updated regardless of ID match.
+      // Keep for refactor parity; tighten to ID-matched updates in a dedicated bugfix patch.
       goal_neck_.is_updated_ = true;
     }
   }

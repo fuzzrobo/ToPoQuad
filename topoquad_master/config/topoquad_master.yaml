@@ -12,94 +12,16 @@
           pos_p: 800.0
         overshoot: 0.0
         deadband: 0.01
-        legs:
-          link_lengths:
-            hip_yaw: 0.0445
-            hip_pitch: 0.0445
-            knee_pitch: 0.0715
-          mounts:
-            fr:
-              position_xy: [0.0445477272147525, 0.04454772721475249]
-              yaw: 0.7853981633974483
-            fl:
-              position_xy: [-0.04454772721475249, 0.0445477272147525]
-              yaw: 2.356194490192345
-            br:
-              position_xy: [0.04454772721475248, -0.04454772721475251]
-              yaw: 5.497787143782138
-            bl:
-              position_xy: [-0.04454772721475251, -0.04454772721475248]
-              yaw: 3.9269908169872414
-          joints:
-            fr:
-              hip_yaw:
-                id: 14
-                gear_ratio: -1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              hip_pitch:
-                id: 13
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              knee_pitch:
-                id: 12
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-            fl:
-              hip_yaw:
-                id: 24
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              hip_pitch:
-                id: 23
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              knee_pitch:
-                id: 22
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-            br:
-              hip_yaw:
-                id: 4
-                gear_ratio: -1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              hip_pitch:
-                id: 3
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              knee_pitch:
-                id: 2
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-            bl:
-              hip_yaw:
-                id: 34
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              hip_pitch:
-                id: 33
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-              knee_pitch:
-                id: 32
-                gear_ratio: 1.0
-                torque_ratio: 0.00115
-                default_torque: 0.6
-          initial_pose:
-            fr: [0.0, 0.7853981633974483, 0.7853981633974483]
-            fl: [0.0, 0.7853981633974483, 0.7853981633974483]
-            br: [0.0, 0.7853981633974483, 0.7853981633974483]
-            bl: [0.0, 0.7853981633974483, 0.7853981633974483]
+        leg_dynamixel_IDs:
+          br: [ 4,  3,  2] # hip_yaw, hip_pitch, knee_pitch
+          fr: [14, 13, 12] # hip_yaw, hip_pitch, knee_pitch
+          fl: [24, 23, 22] # hip_yaw, hip_pitch, knee_pitch
+          bl: [34, 33, 32] # hip_yaw, hip_pitch, knee_pitch
+        initial_pose_deg:
+          fr: [0.0, 45.0, 45.0]
+          fl: [0.0, 45.0, 45.0]
+          br: [0.0, 45.0, 45.0]
+          bl: [0.0, 45.0, 45.0]
 
 /topoquad/neck_node:
     ros__parameters:
