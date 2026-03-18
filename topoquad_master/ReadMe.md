@@ -6,37 +6,26 @@
   - /legs/command 脚コマンド（角度/足先座標/力・トルクを統合したメッセージ）
   - /legs/state/present 脚の各関節の角度とトルクの現在の状態
   - /legs/state/goal 脚の各関節の角度とトルクの目標の状態
+  - /legs/state/target 脚の各関節の目標コマンド状態
 
-launchファイルから起動した場合以下のようにremapされているので注意
-``` xml
-  <remap from="/legs/command" to="/topoquad/legs/command" />
-  <remap from="/legs/state/present" to="/topoquad/state/leg/present" />
-  <remap from="/legs/state/goal" to="/topoquad/state/leg/goal" />
-```
+launch では namespace `topoquad` 付きで起動しているので，実際の topic は `/topoquad/legs/...` になる．
 
 ### neck_node
  - /neck/command 同上
  - /neck/state/present 同上
  - /neck/state/goal 同上
 
-launchファイルから起動した場合以下のようにremapされているので注意
-```xml
-  <remap from="/neck/command" to="/topoquad/neck/command" />
-  <remap from="/neck/state/present" to="/topoquad/state/neck/present" />
-  <remap from="/neck/state/goal" to="/topoquad/state/neck/goal" />
-```
+launch では namespace `topoquad` 付きで起動しているので，実際の topic は `/topoquad/neck/...` になる．
 
 ## dynamixel id map
 
 ### Leg/脚
-topoquad_master pkg の leg_node が 持っている情報.
- - 後右 :  4  3  2
- - 前右 : 14 13 12
- - 前左 : 24 23 22
- - 後左 : 34 33 32
-　　（根元 <--> 足先）
-
- launchから書き換え可能．
+`leg_node` のロボット固有値は `config/topoquad_master.yaml` のパラメータとして持つ．
+対象は以下。
+ - 脚寸法: `legs.link_lengths.*`
+ - 脚取付位置/角度: `legs.mounts.<fr|fl|br|bl>.*`
+ - 関節特性: `legs.joints.<fr|fl|br|bl>.<joint>.{id,gear_ratio,torque_ratio,default_torque}`
+ - 初期姿勢: `legs.initial_pose.<fr|fl|br|bl>`
 
 ### Neck/首 (optional)
 topoquad_master pkg の neck_node が 持っている情報.

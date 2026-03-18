@@ -22,12 +22,8 @@ ament_auto_add_executable(leg_node src/leg_node.cpp)
 ament_auto_add_executable(neck_node src/neck_node.cpp)
 
 install(
- DIRECTORY config include launch
+ DIRECTORY config launch
  DESTINATION share/${PROJECT_NAME}
-)
-
-install(TARGETS
-  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_auto_package()
