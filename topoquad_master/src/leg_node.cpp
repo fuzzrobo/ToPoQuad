@@ -172,13 +172,9 @@ class LegNode : public rclcpp::Node {
       ctrl.profile_vel_deg_s.push_back(50.0 /*deg/s*/);
       ctrl.profile_vel_deg_s.push_back(50.0 /*deg/s*/);
       ctrl.profile_vel_deg_s.push_back(50.0 /*deg/s*/);
-      // todo 
-      // ctrl.profile_vel_deg_s.push_back(500.0 /*deg/s*/);
-      // ctrl.profile_vel_deg_s.push_back(500.0 /*deg/s*/);
-      // ctrl.profile_vel_deg_s.push_back(500.0 /*deg/s*/);
-      // ctrl.current_ma.push_back(rp.hip_yaw.default_torque / rp.hip_yaw.torque_ratio);
-      // ctrl.current_ma.push_back(rp.hip_pitch.default_torque / rp.hip_pitch.torque_ratio);
-      // ctrl.current_ma.push_back(rp.knee_pitch.default_torque / rp.knee_pitch.torque_ratio);
+      ctrl.current_ma.push_back(rp.hip_yaw.default_torque / rp.hip_yaw.torque_ratio);
+      ctrl.current_ma.push_back(rp.hip_pitch.default_torque / rp.hip_pitch.torque_ratio);
+      ctrl.current_ma.push_back(rp.knee_pitch.default_torque / rp.knee_pitch.torque_ratio);
     }
 
     dyn_cmd_pub_->publish(dyn);

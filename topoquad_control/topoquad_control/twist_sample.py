@@ -8,12 +8,12 @@ from std_msgs.msg import Float64MultiArray
 
 from math import pi, sin, cos, sqrt, hypot
 
-# Static
-r = 0.025
-s = 0.030
-h = 0.025
-base_radius = 0.085
-base_height = 0.100
+# 歩容生成に使う機体寸法・軌道パラメータ [m]
+r = 0.030 # body_motion で使う胴体重心の前後左右の揺動振幅
+s = 0.030 # leg_motion_* で使う足先軌道の水平方向の振幅
+h = 0.025 # leg_motion_* で使う遊脚時の足上げ高さ
+base_radius = 0.085 # 機体中心から各脚の基準足先位置までの水平距離
+base_height = 0.095 # 胴体基準位置から足先基準位置までの高さ
 class TeleopNode(Node):
 
     def __init__(self):

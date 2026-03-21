@@ -32,19 +32,19 @@ def main(args=None):
         msg = QuadRobotLeg()
 
         msg.point_fl = Point()
-        msg.point_fl.x = -0.09+r*x
+        msg.point_fl.x = -0.08+r*x
         msg.point_fl.y =  0.09+r*y -s*cos(theta-pi/2*0)
         msg.point_fl.z = -0.08-r*z+ h*sin(theta-pi/2*0) 
         msg.point_fr = Point()
-        msg.point_fr.x =  0.09+r*x
+        msg.point_fr.x =  0.08+r*x
         msg.point_fr.y =  0.09+r*y -s*cos(theta-pi/2*2)
         msg.point_fr.z = -0.08-r*z+ h*sin(theta-pi/2*2) 
         msg.point_bl = Point()
-        msg.point_bl.x = -0.09+r*x
+        msg.point_bl.x = -0.08+r*x
         msg.point_bl.y = -0.09+r*y -s*cos(theta-pi/2*3)
         msg.point_bl.z = -0.08-r*z+ h*sin(theta-pi/2*3) 
         msg.point_br = Point()
-        msg.point_br.x =  0.09+r*x
+        msg.point_br.x =  0.08+r*x
         msg.point_br.y = -0.09+r*y -s*cos(theta-pi/2*1)
         msg.point_br.z = -0.08-r*z+ h*sin(theta-pi/2*1) 
 
