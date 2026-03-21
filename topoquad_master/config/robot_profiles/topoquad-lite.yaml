@@ -1,5 +1,6 @@
 /topoquad/leg_node:
     ros__parameters:
+        control_mode: "position" # lite は position じゃないと安定しない．
         legs:
           link_lengths:
             hip_yaw: 0.0445
@@ -12,20 +13,20 @@
             bl: {yaw_deg: 225.0, position_polar: [0.053, 225.0] } # [radius_m, theta_deg]
           joints:
             fr:
-              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.000347, default_torque: 0.4} # 0.000347 = +0.53Nm / 1500mA
-              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
+              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.000347, default_torque: 0.53} # 0.000347 = +0.53Nm / 1500mA
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
             fl:
-              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
+              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
             br:
-              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
+              hip_yaw:    {gear_ratio: -1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
             bl:
-              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.4}
-
+              hip_pitch:  {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.000347, default_torque: 0.53}
+              
 

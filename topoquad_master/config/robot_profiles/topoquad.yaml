@@ -28,3 +28,9 @@
               hip_yaw:    {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
               knee_pitch: {gear_ratio:  1.0, torque_ratio: 0.00115, default_torque: 0.6}
 
+/topoquad/dxl_handler:
+    ros__parameters:
+        latency_timer: 2
+        loop_rate: 200
+        option/imu_opencr:
+            use:  true

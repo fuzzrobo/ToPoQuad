@@ -10,7 +10,7 @@
         dynamixel_gain:
           vel_p: 1000.0
           pos_p: 800.0
-        overshoot: 0.0
+        overshoot: 30.0
         deadband: 0.01
         leg_dynamixel_IDs:
           br: [ 4,  3,  2] # hip_yaw, hip_pitch, knee_pitch
