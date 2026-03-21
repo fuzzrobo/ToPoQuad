@@ -2,13 +2,13 @@ topoquad:
   dxl_handler:
     ros__parameters:
       # 開発用（main.cpp 冒頭で参照）
-      debug: true # true: ポートopen失敗/サーボ未検出/検出数不一致でも停止しない, false: 上記で停止する
+      debug: false # true: ポートopen失敗/サーボ未検出/検出数不一致でも停止しない, false: 上記で停止する
       no_use_command_line: false # true: CLI向けtopic(dynamixel/command/*, dynamixel/state/*)を作らない
 
       # 通信機器の設定（DynamixelCommunicator の初期化に使用）
       device_name: /dev/ttyACM0 # 接続先デバイスパス
-      baudrate: 3000000 # DYNAMIXELバス通信速度 [bps]
-      latency_timer: 1 # USB-Serial latency_timer [ms]
+      baudrate: 1000000 # DYNAMIXELバス通信速度 [bps]
+      latency_timer: 4 # config/models/*.yaml でモデルごとに上書き可能． USB-Serial latency_timer [ms]
 
       # 通信リトライ設定（dyn_comm_.set_retry_config）
       dyn_comm/retry_num: 5 # 1回の通信で再試行する回数
