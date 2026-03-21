@@ -183,8 +183,22 @@ ssh your_username@<Raspberry_PiのIPアドレス>
 ### 3.1. セットアップ
 RasPiにssh接続して以下のコマンドを実行
 ```bash
+export topoquad_model=topoquad        # または topoquad-lite
 ros2 launch topoquad_bringup hardware.launch.py
 ```
+
+<!-- `topoquad_master` を直接起動する場合は，以下でも同じ実機スタックを起動できます．
+```bash
+ros2 launch topoquad_master topoquad_master.launch.py model:=topoquad-lite
+``` -->
+
+### 3.1.1. PCでモデルを確認する
+リモートPCで以下のコマンドを実行
+```bash
+ros2 launch topoquad_bringup fake.launch.py
+```
+
+`fake.launch.py` は `topoquad_description` のモデル可視化 launch を呼び出し，`rviz2` と `joint_state_publisher_gui` を起動します．
 
 ### 3.2. 自律でサンプル歩容を試す
 RasPiにssh接続して以下のコマンドを実行

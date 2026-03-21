@@ -54,7 +54,7 @@ def generate_launch_description():
             [
                 FindPackageShare('turtlebot3_lime_bringup'),
                 'worlds',
-                'turtlebot3_world.model'
+                'topoquad_world.model'
             ]
         )
     )
