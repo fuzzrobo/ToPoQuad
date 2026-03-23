@@ -204,6 +204,7 @@ ros2 launch topoquad_bringup fake.launch.py
 RasPiにssh接続して以下のコマンドを実行
 ```bash
 # 新しいターミナルで実行
+export topoquad_model=topoquad        # または topoquad-lite
 ros2 launch topoquad_control sample_walk.launch.py
 ```
 
