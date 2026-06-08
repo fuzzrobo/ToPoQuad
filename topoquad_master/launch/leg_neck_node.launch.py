@@ -10,7 +10,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     package_share = get_package_share_directory("topoquad_master")
     topoquad_master_config = os.path.join(package_share, "config", "topoquad_master.yaml")
-    default_model_config = os.path.join(package_share, "config", "models", "topoquad-lite.yaml")
+    default_model_config = os.path.join(package_share, "config", "models", "topoquad.yaml")
     model_config = LaunchConfiguration("model_config")
     model_config_argument = DeclareLaunchArgument( # yaml ファイルのパスを model_config 引数に紐づける．
         "model_config",
